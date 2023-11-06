@@ -4,21 +4,22 @@ Abort triggered by error from
 Aborting in progress snapshotId 
 Cannot find blockfile with primary read preference
 Caused by: java.lang.OutOfMemoryError: Direct buffer memory
-ERROR
 Early EOF
-Exception
 Exception authenticating MongoCredential
 Exception opening socket
 Excluding replica set from checkpointing
 FCV missing from some host
+Failed to save an s3 object.
 Failure batch inserting
 Got socket exception on connection 
 Retryable error saving data blocks for
+Retryable error saving data blocks for 
 RuntimeException while getting blocks for file WiredTiger
 The quota has been exceeded for this bucket or account
 There was an IndexCollection error for
 Thread pool currently has less than
 Timeout while receiving message
+Unable to obtain MongoSvc for checking free space on
 WT snapshot has pending work. Will not retarget until that work is completed
 We're sorry, an unexpected error has occurred 
 Wtc cluster topology shard was aborted
@@ -26,3 +27,5 @@ backup cursor extend not updated
 handleError
 jetty.io.EofException
 mongod binary version from primary mongod is empty
+#Exception
+ERROR

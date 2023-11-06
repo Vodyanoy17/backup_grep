@@ -1,13 +1,14 @@
 import os
 import csv
 import argparse
-from colorama import Fore
+from colorama import Fore, Back, Style
 from collections import defaultdict
 
 def read_errors(file_name):
     with open(file_name, 'r') as file:
         reader = csv.reader(file)
-        return [item for sublist in reader for item in sublist]
+        # skip lines that start with ‘#’
+        return [item for sublist in reader if not sublist[0].startswith('#') for item in sublist]
 
 def find_errors(log_file, errors):
     error_counts = defaultdict(int)
@@ -34,7 +35,7 @@ def main():
 
     for error, count in found_errors.items():
         print(Fore.RED + f"Error Message [{error}]\t\tNumber of its occurrences {count}")
-        print(Fore.RESET + f"Sample line: {error_lines[error]}")
+        print(Fore.RESET + Back.GREEN + f"Sample line:{error_lines[error]}"+Back.RESET )
 
 if __name__ == "__main__":
     main()
