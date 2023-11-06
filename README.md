@@ -6,7 +6,7 @@ we are looking for the most popular backup errors in MMS0.log file
 
 1. Clone the repository:
    ```
-   git clone 
+   gh repo clone Vodyanoy17/backup_grep
    ```
 3. Example of execution
    ```
