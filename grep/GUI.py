@@ -1,14 +1,13 @@
+import re
+import os
+import tkinter as tk
 from datetime import datetime
 from grep_bck import log_parser
+from tkhtmlview import HTMLLabel
+from tkinter import ttk, scrolledtext
 from tkcalendar import Calendar, DateEntry
 from tkinter import filedialog, simpledialog, messagebox
-from tkinter import ttk
-import os
-import re
-from tkinter import ttk, scrolledtext
-import tkinter as tk
 from tkinter import Tk, Text, Scrollbar, Frame, Label, Button
-#from colorama import Fore, Back, init
 
 
 def fill_fields_with_default(log_file):
@@ -48,47 +47,49 @@ def select_file():
 
 
 def on_end_combobox_click(event):
-   # Get the current selection
+    # Get the current selection
     current_value = end_time_entry.get()
 
     # Parse the current time
-    current_hours, current_minutes = map(int, current_value.split(':'))
+    current_hours, current_minutes = map(int, current_value.split(":"))
 
     # Find the next greater value or wrap around to the first value
-    values = end_time_entry['values']
+    values = end_time_entry["values"]
     index = 0
 
     for i, value in enumerate(values):
-        hours, minutes = map(int, value.split(':'))
-        if (hours > current_hours) or (hours == current_hours and minutes > current_minutes):
+        hours, minutes = map(int, value.split(":"))
+        if (hours > current_hours) or (
+            hours == current_hours and minutes > current_minutes
+        ):
             index = i
             break
 
-    
     # Set the current attribute to the index + 1 (next value)
     end_time_entry.current(index)
+
 
 def on_start_combobox_click(event):
     # Get the current selection
     current_value = start_time_entry.get()
 
     # Parse the current time
-    current_hours, current_minutes = map(int, current_value.split(':'))
+    current_hours, current_minutes = map(int, current_value.split(":"))
 
     # Find the next greater value or wrap around to the first value
-    values = start_time_entry['values']
+    values = start_time_entry["values"]
     index = 0
 
     for i, value in enumerate(values):
-        hours, minutes = map(int, value.split(':'))
-        if (hours > current_hours) or (hours == current_hours and minutes > current_minutes):
+        hours, minutes = map(int, value.split(":"))
+        if (hours > current_hours) or (
+            hours == current_hours and minutes > current_minutes
+        ):
             index = i
             break
 
-    
     # Set the current attribute to the index + 1 (next value)
     start_time_entry.current(index)
-
 
 
 def ok_action():
@@ -98,10 +99,15 @@ def ok_action():
     else:
         start = start_date_entry.get() + " " + start_time_entry.get()
         end = end_date_entry.get() + " " + end_time_entry.get()
-        log_result = log_parser(log_file, beginning_timestamp=start, end_timestamp=end)
+        log_result, html_log = log_parser(
+            log_file, beginning_timestamp=start, end_timestamp=end
+        )
 
-        test_text_colorful = f"{log_result}"  # 31 corresponds to red color in ANSI escape codes
-        text_widget.insert(tk.END, test_text_colorful + "\n")
+        test_text_colorful = (
+            f"{log_result}"  # 31 corresponds to red color in ANSI escape codes
+        )
+        html_label.set_html(html_log)
+
 
 def cancel_action():
     root.destroy()
@@ -126,7 +132,7 @@ start_time_entry = ttk.Combobox(
 start_time_entry.grid(row=1, column=2)
 
 # Bind the click event to the §§
-start_time_entry.bind('<Button-1>', on_start_combobox_click)
+start_time_entry.bind("<Button-1>", on_start_combobox_click)
 
 
 tk.Label(root, text="End Time frame:").grid(row=2)
@@ -136,7 +142,7 @@ end_time_entry = ttk.Combobox(
     root, values=[f"{i:02d}:{j:02d}" for i in range(24) for j in range(0, 60, 15)]
 )
 end_time_entry.grid(row=2, column=2)
-end_time_entry.bind('<Button-1>', on_end_combobox_click)
+end_time_entry.bind("<Button-1>", on_end_combobox_click)
 
 
 tk.Button(root, text="OK", command=ok_action).grid(row=3, column=0)
@@ -146,27 +152,12 @@ tk.Button(root, text="Cancel", command=cancel_action).grid(row=3, column=1)
 separator = ttk.Separator(root, orient="horizontal")
 separator.grid(row=4, column=0, columnspan=3, sticky="ew", pady=10)
 
-text_frame = tk.Frame(root)
-text_frame.grid(row=5, column=0, columnspan=3, pady=10, sticky="nsew")
+# Adding an HTMLLabel below the existing code
+html_label = HTMLLabel(root, html="")
+html_label.grid(row=6, column=0, columnspan=3, pady=10, sticky="nsew")
 
-# Create the text_widget first
-text_widget = scrolledtext.ScrolledText(
-    text_frame, height=10, wrap=tk.NONE
-)
-text_widget.pack(expand=True, fill="both")
-
-# Then, add a horizontal scroll bar to the text widget
-scrollbar = ttk.Scrollbar(text_frame, orient="horizontal", command=text_widget.xview)
-scrollbar.pack(side="bottom", fill="x")
-
-text_widget.configure(xscrollcommand=scrollbar.set)  # Configure xscrollcommand after widget creation
-# Configure tags for formatting
-text_widget.tag_configure("bold", font=("TkDefaultFont", 12, "bold"))
-
-
-
-# Configure grid column and row properties to make the text widget resize with the main window
+# Configure grid column and row properties to make the HTMLLabel resize with the main window
 root.columnconfigure(0, weight=1)
-root.rowconfigure(5, weight=1)
+root.rowconfigure(6, weight=1)
 
 root.mainloop()
