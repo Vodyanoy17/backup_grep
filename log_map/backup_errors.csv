@@ -8,7 +8,7 @@ Caused by: java.lang.OutOfMemoryError: Direct buffer memory
 Early EOF
 Exception authenticating MongoCredential
 Exception opening socket
-Excluding replica set from checkpointing
+Excluding replica set from checkpointing.next
 FCV missing from some host
 Failed to save an s3 object.
 Failure batch inserting
