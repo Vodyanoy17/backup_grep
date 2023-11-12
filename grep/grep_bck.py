@@ -2,7 +2,7 @@ import os
 import re
 import csv
 import argparse
-from colorama import Fore, Back, Style
+#from colorama import Fore, Back, Style
 from collections import defaultdict
 from datetime import datetime, date
 
@@ -44,10 +44,16 @@ def log_parser(log_file, beginning_timestamp="1970-01-01T00:00:00", end_timestam
     errors = read_errors(file_path)
     found_errors, error_lines = find_errors(log_file,errors, beginning_timestamp=beginning_timestamp, end_timestamp=end_timestamp)
 
+    error_output = ''
     for error, count in found_errors.items():
-        print(Fore.RED + f"Error Message [{error}]\t\tNumber of its occurrences {count}")
-        print(Fore.RESET + Back.GREEN + f"Sample line:{error_lines[error]}"+Back.RESET )
+        # print(Fore.RED + f"Error Message [{error}]\t\tNumber of its occurrences {count}")
+        # #print(Fore.RESET + Back.GREEN + f"Sample line:{error_lines[error]}"+Back.RESET )
+        # print(Fore.RESET + f"Sample line:{error_lines[error]}"+Back.RESET )
 
+        error_output += f"Error Message [{error}]\t\tNumber of its occurrences {count}\n"
+        error_output += f"Sample line:{error_lines[error]}\n\n"
+
+    return error_output
 
 def main():
     parser = argparse.ArgumentParser(description='Find errors in log file.')

@@ -1,3 +1,5 @@
+# The error messages are ordered alphabetically, except for the most generic error placed at the end. 
+# Additionally, we have the flexibility to comment out any error by using the '#' symbol
 API validation failure on abort 
 Abort request for 
 Abort triggered by error from
