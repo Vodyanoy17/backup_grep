@@ -8,7 +8,6 @@ Abort triggered on a sharded cluster
 Aborting in progress snapshotId 
 Cannot find blockfile with primary read preference
 Caused by: java.lang.OutOfMemoryError: Direct buffer memory
-Early EOF
 Exception authenticating MongoCredential
 Exception opening socket
 Excluding replica set from checkpointing

@@ -5,7 +5,6 @@ import argparse
 from collections import defaultdict
 from datetime import datetime, date
 
-
 def read_errors(file_name):
     """
         Reads errors from a CSV file, skipping lines starting with '#'.
@@ -19,7 +18,7 @@ def read_errors(file_name):
         reader = csv.reader(file)
         # skip lines that start with ‘#’
         return [
-            item
+            item.strip()
             for sublist in reader
             if not sublist[0].startswith("#")
             for item in sublist
@@ -91,10 +90,17 @@ def log_parser(
         beginning_timestamp=beginning_timestamp,
         end_timestamp=end_timestamp,
     )
+    # Example of search link
+    # https://search.corp.mongodb.com/#q=%22MULTIPLE_CONCURRENT_SNAPSHOTS%22&sort=date%20descending&f:facet-product=[Ops%20Manager]
+    
+    
 
     html_log = ""
     for error, count in found_errors.items():
-        html_log += f"""<p>Error Message <strong>[{error}]</strong>    Number of its occurrences <strong>{count}</strong><br>"""
+        search_link = f"""https://search.corp.mongodb.com/#q=%22{error}%22&sort=date%20descending&f:facet-product=[Ops%20Manager]"""
+        emeded_link = f"""<a href="{search_link}" target="_blank">{error}</a>"""
+        #html_log += f"""<p>Error Message <strong>[{error}]</strong>    Number of its occurrences <strong>{count}</strong><br>"""
+        html_log += f"""<p>Error Message <strong>[{emeded_link}]</strong>    Number of its occurrences <strong>{count}</strong><br>"""
         html_log += f"""Sample line:<span style="color:green;">{error_lines[error]}</span></p>"""
 
     return html_log
