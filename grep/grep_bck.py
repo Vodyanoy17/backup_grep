@@ -63,10 +63,7 @@ def log_parser(
         # #print(Fore.RESET + Back.GREEN + f"Sample line:{error_lines[error]}"+Back.RESET )
         # print(Fore.RESET + f"Sample line:{error_lines[error]}"+Back.RESET )
 
-        error_output += (
-            f"Error Message [{error}]\t\tNumber of its occurrences {count}\n"
-        )
-        error_output += f"Sample line:{error_lines[error]}\n\n"
+ 
         # initial_html_content = """
         #     <p>This is a <strong>bold</strong> and <em>italic</em> text with different colors:</p>
         #     <p><span style="color:red;">Red Text</span>, <span style="color:green;">Green Text</span>, <span style="color:blue;">Blue Text</span></p>
@@ -74,7 +71,7 @@ def log_parser(
         html_log += f"""<p>Error Message <strong>[{error}]</strong>    Number of its occurrences <strong>{count}</strong><br>"""
         html_log += f"""Sample line:<span style="color:green;">{error_lines[error]}</span></p>"""
 
-    return error_output, html_log
+    return html_log
 
 
 def main():

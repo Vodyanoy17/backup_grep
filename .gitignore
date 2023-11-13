@@ -161,3 +161,4 @@ cython_debug/
 example/html-20231108T091648Z-001.zip
 log_map/test.csv
 grep/test.py
+grep/favicon.ico
