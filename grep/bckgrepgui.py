@@ -66,8 +66,13 @@ def select_file():
     filename = filedialog.askopenfilename(initialdir=initial_dir)
 
     if filename:
+        file_entry.config(state="normal")  # Change it back to normal (editable)
         file_entry.delete(0, tk.END)
         file_entry.insert(0, filename)
+        # Make the file_entry field read-only
+        file_entry.config(state="readonly")
+        html_label.set_html("")
+        
 
         # Call the function to fill out the fields with default values
         fill_fields_with_default(filename)
@@ -170,8 +175,11 @@ root = tk.Tk()
 default_directory = os.getcwd()  # Get the current working directory
 
 tk.Label(root, text="Log file location:").grid(row=0)
-file_entry = tk.Entry(root)
+file_entry = tk.Entry(root,width=30)
 file_entry.insert(0, default_directory)  # Set the default directory
+
+# Make the file_entry field read-only
+file_entry.config(state="readonly")
 file_entry.grid(row=0, column=1)
 tk.Button(root, text="Browse", command=select_file).grid(row=0, column=2)
 
