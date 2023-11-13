@@ -21,6 +21,7 @@ import csv
 import argparse
 from pprint import pprint
 
+building_status_map = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) DEBUG .+?Building status map$"
 ideal_backup_module = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) - Ideal backup module is available for WT checkpointing"
 updating_checkpoint_targeting = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) .+? backup.jobs.+?\.(?P<replica>(.+?)) \[.+?\] - Updating checkpoint targeting selection from"
 full_incremental_day_of_week = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) .+? - fullIncrementalDayOfWeek not set"
@@ -41,11 +42,13 @@ saving_block_files_complete = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}
 completing_snapshot = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) .+?  backup.jobs.(?P=gid)\.(?P<replica>.+?) .+? - Snapshot (?P<backupID>.+?) completing snapshot.$"
 successfully_released_lock = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) .+?  backup.jobs.(?P=gid)\.(?P<replica>.+?) .+? - Successfully released lock for Snapshot (?P<backupID>.+?). Snapshot is complete"
 snapshot_progress = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) INFO .+?Snapshot progress: read \d+? bytes total"
-
+loading_backupdeployment = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) DEBUG .+?Loading BackupDeployment$"
 ## STOP EVENTS PATTERNS
 
 
-patterns = [ideal_backup_module , 
+patterns = [building_status_map,
+            loading_backupdeployment,
+            ideal_backup_module , 
             updating_checkpoint_targeting,
             full_incremental_day_of_week,
             last_full_incremental_timestamp,

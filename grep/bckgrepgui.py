@@ -4,35 +4,62 @@ import tkinter as tk
 from datetime import datetime
 from grep_bck import log_parser
 from tkhtmlview import HTMLLabel
-from tkinter import ttk, scrolledtext
-from tkcalendar import Calendar, DateEntry
-from tkinter import filedialog, simpledialog, messagebox
-from tkinter import Tk, Text, Scrollbar, Frame, Label, Button
-
+from tkinter import ttk #, scrolledtext
+from tkcalendar import DateEntry #, Calendar, 
+from tkinter import filedialog, messagebox# #simpledialog, 
 
 def fill_fields_with_default(log_file):
-    with open(log_file, "r") as file:
-        # skip the first line
+    """_summary_
+
+    Args:
+        log_file (_type_): _description_
+    """
+    with open(log_file, "rb") as file:
+        """
+        fill_fields_with_default(log_file): Reads a log file, extracts the timestamps 
+        from the second and last lines, and populates the relevant fields with these timestamps.
+        """
+        # skip the first line with the header
         _ = file.readline()
 
         # Read the second line again to get the actual second line
-        second_line = file.readline()
+        second_line = file.readline().decode("utf-8")
+        # Seek to the end of the file
+        file.seek(-2, 2)
+
+        # Move the cursor to the beginning of the last line
+        while file.read(1) != b'\n':
+            file.seek(-2, 1)
+
+        # Read the last line
+        last_line = file.readline().decode('utf-8')
+
         # Use regular expression to find the timestamp
-        match = re.search(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", second_line)
-        if match:
-            timestamp_str = match.group(0)
-            timestamp = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S")
+        match_start = re.search(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", second_line )
+        match_end = re.search(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", last_line)
+        if match_start:
+            timestamp_str_1 = match_start.group(0)
+            timestamp_1 = datetime.strptime(timestamp_str_1, "%Y-%m-%dT%H:%M:%S")
 
             # Populate the start_date_entry, start_time_entry, and other relevant fields with default values
-            start_date_entry.set_date(timestamp.date())
-            start_time_entry.set(timestamp.strftime("%H:%M"))
+            start_date_entry.set_date(timestamp_1.date())
+            start_time_entry.set(timestamp_1.strftime("%H:%M"))
+
+        if match_end:
+            timestamp_str_2 = match_end.group(0)
+            timestamp_2 = datetime.strptime(timestamp_str_2, "%Y-%m-%dT%H:%M:%S")
 
             # Populate the start_date_entry
-            end_date_entry.set_date(timestamp.date())
-            end_time_entry.set(timestamp.strftime("%H:%M"))
-
+            end_date_entry.set_date(timestamp_2.date())
+            end_time_entry.set(timestamp_2.strftime("%H:%M"))
+        
 
 def select_file():
+    """
+    select_file(): Opens a file dialog for the user to select a file. 
+    Updates the file_entry field with the selected file's path and fills out other 
+    fields with default values based on the selected file.
+    """
     initial_dir = (
         file_entry.get()
     )  # Get the current value in the entry (default or user-selected)
@@ -47,6 +74,12 @@ def select_file():
 
 
 def on_end_combobox_click(event):
+    """
+    Select the end_time_combobox with the next greater value from the current value
+
+    Args:
+        event (Tkinter.Event): The event triggered by the combobox click.
+    """
     # Get the current selection
     current_value = end_time_entry.get()
 
@@ -70,6 +103,12 @@ def on_end_combobox_click(event):
 
 
 def on_start_combobox_click(event):
+    """
+    Updates the start time combobox with the next greater value.
+
+    Args:
+        event (Tkinter.Event): The event triggered by the combobox click.
+    """
     # Get the current selection
     current_value = start_time_entry.get()
 
@@ -93,23 +132,36 @@ def on_start_combobox_click(event):
 
 
 def ok_action():
+    """
+    Validates user input, parses log file, and updates the HTML label.
+
+    If a valid log file path is provided, extracts start and end timestamps, parses the log file
+    within the specified time frame, and updates the HTML label with the parsed content. Displays
+    an info message if the file path is invalid or empty.
+
+    Note:
+
+    Raises:
+    - No specific exceptions are caught or raised.
+
+    Returns:
+    - None
+    """
     log_file = file_entry.get()
     if log_file == "" or not os.path.isfile(log_file):
         messagebox.showinfo("Info", "Please select a file")
     else:
         start = start_date_entry.get() + " " + start_time_entry.get()
         end = end_date_entry.get() + " " + end_time_entry.get()
-        log_result, html_log = log_parser(
+        html_log = log_parser(
             log_file, beginning_timestamp=start, end_timestamp=end
         )
 
-        test_text_colorful = (
-            f"{log_result}"  # 31 corresponds to red color in ANSI escape codes
-        )
         html_label.set_html(html_log)
 
 
 def cancel_action():
+    """Cancels the action and closes the main Tkinter window."""
     root.destroy()
 
 
