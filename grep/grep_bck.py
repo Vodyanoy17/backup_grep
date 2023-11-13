@@ -7,6 +7,14 @@ from datetime import datetime, date
 
 
 def read_errors(file_name):
+    """
+        Reads errors from a CSV file, skipping lines starting with '#'.
+        Args:
+            file_name (str): The path to the CSV file.
+        Returns:
+            List[str]: A list of errors extracted from the CSV file.
+
+    """
     with open(file_name, "r") as file:
         reader = csv.reader(file)
         # skip lines that start with ‘#’
@@ -19,6 +27,21 @@ def read_errors(file_name):
 
 
 def find_errors(log_file, errors, beginning_timestamp, end_timestamp):
+    """
+    Searches for specified errors within a time range in a log file.
+
+    Args:
+        log_file (str): The path to the log file.
+        errors (List[str]): List of error strings to search for.
+        beginning_timestamp (str): Start timestamp in the format "%m/%d/%y %H:%M".
+        end_timestamp (str): End timestamp in the format "%m/%d/%y %H:%M".
+
+    Returns:
+        Tuple[Dict[str, int], Dict[str, str]]:
+            A tuple containing:
+            - A dictionary with error counts.
+            - A dictionary with the first line of the log containing each error.
+    """
     error_counts = defaultdict(int)
     error_lines = {}
 
@@ -46,6 +69,18 @@ def log_parser(
     beginning_timestamp="1970-01-01T00:00:00",
     end_timestamp="2190-01-01T23:59:59",
 ):
+    """
+    Parses a log file, searches for errors, and generates an HTML log summary.
+
+    Args:
+        log_file (str): The path to the log file.
+        beginning_timestamp (str): Start timestamp in the format "%Y-%m-%dT%H:%M:%S".
+        end_timestamp (str): End timestamp in the format "%Y-%m-%dT%H:%M:%S".
+
+    Returns:
+        str: An HTML-formatted log summary containing error information.
+    """
+
     script_directory = os.path.dirname(__file__)
     print(script_directory)
     file_path = os.path.join(script_directory, "backup_errors.csv")
@@ -57,17 +92,8 @@ def log_parser(
         end_timestamp=end_timestamp,
     )
 
-    html_log = error_output = ""
+    html_log = ""
     for error, count in found_errors.items():
-        # print(Fore.RED + f"Error Message [{error}]\t\tNumber of its occurrences {count}")
-        # #print(Fore.RESET + Back.GREEN + f"Sample line:{error_lines[error]}"+Back.RESET )
-        # print(Fore.RESET + f"Sample line:{error_lines[error]}"+Back.RESET )
-
- 
-        # initial_html_content = """
-        #     <p>This is a <strong>bold</strong> and <em>italic</em> text with different colors:</p>
-        #     <p><span style="color:red;">Red Text</span>, <span style="color:green;">Green Text</span>, <span style="color:blue;">Blue Text</span></p>
-        # """
         html_log += f"""<p>Error Message <strong>[{error}]</strong>    Number of its occurrences <strong>{count}</strong><br>"""
         html_log += f"""Sample line:<span style="color:green;">{error_lines[error]}</span></p>"""
 
@@ -80,14 +106,6 @@ def main():
     args = parser.parse_args()
 
     log_parser(args.log_file)
-    # script_directory = os.path.dirname(__file__)
-    # file_path = os.path.join(script_directory, 'backup_errors.csv')
-    # errors = read_errors(file_path)
-    # found_errors, error_lines = find_errors(args.log_file, errors)
-
-    # for error, count in found_errors.items():
-    #     print(Fore.RED + f"Error Message [{error}]\t\tNumber of its occurrences {count}")
-    #     print(Fore.RESET + Back.GREEN + f"Sample line:{error_lines[error]}"+Back.RESET )
 
 
 if __name__ == "__main__":

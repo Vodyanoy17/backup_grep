@@ -1,5 +1,6 @@
 # The error messages are ordered alphabetically, except for the most generic error placed at the end. 
 # Additionally, we have the flexibility to comment out any error by using the '#' symbol
+# The TARGETING_MISMATCH is typically caused by the WTAgentTargetingSvc function updating the WT checkpoint target host during the backup due to a communication issue from the Agent to Ops Manager or the Agent to the mongod process.
 API validation failure on abort 
 Abort request for 
 Abort triggered by error from
@@ -19,7 +20,6 @@ LOW_FILESYSTEM_STORE_FREE_SPACE_PERCENT
 MULTIPLE_CONCURRENT_SNAPSHOTS
 Oplog tail targeting failed: No candidate backup module sessions found
 Retryable error saving data blocks for
-Retryable error saving data blocks for 
 RuntimeException while getting blocks for file WiredTiger
 Skipping creation of snapshot, one already exists for group
 The quota has been exceeded for this bucket or account
