@@ -5,7 +5,6 @@ import argparse
 from collections import defaultdict
 from datetime import datetime, date
 
-
 def read_errors(file_name):
     """
         Reads errors from a CSV file, skipping lines starting with '#'.

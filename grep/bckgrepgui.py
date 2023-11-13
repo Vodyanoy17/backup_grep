@@ -75,7 +75,6 @@ def select_file():
         file_entry.config(state="readonly")
         html_label.set_html("")
         
-
         # Call the function to fill out the fields with default values
         fill_fields_with_default(filename)
 
