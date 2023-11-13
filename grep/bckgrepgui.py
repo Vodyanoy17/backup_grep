@@ -1,5 +1,7 @@
 import re
 import os
+import tempfile
+import webbrowser
 import tkinter as tk
 from datetime import datetime
 from grep_bck import log_parser
@@ -163,7 +165,18 @@ def ok_action():
         )
 
         html_label.set_html(html_log)
+        open_web(html_log)
 
+def open_web(html_content):
+    html_log = """ <html><body>""" + html_content + """ </body> </html> """
+    print(html_log)
+    # Create a temporary file
+    temp = tempfile.NamedTemporaryFile(delete=False, suffix='.html')
+    temp.write(html_content.encode('utf-8'))
+    temp.close()
+
+    # Open the file in the web browser
+    webbrowser.open_new_tab('file://' + os.path.realpath(temp.name))
 
 def cancel_action():
     """Cancels the action and closes the main Tkinter window."""

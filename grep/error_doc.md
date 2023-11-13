@@ -16,3 +16,11 @@ a communication issue from the Agent to Ops Manager or the Agent to the mongod p
 >The above errors indicate that OpsManager is looking for the blocks in S3 blockstore but its unable to find it.
 We suspect there could be some issues at the S3 blockstore layer. To further aid the troubleshooting please also help us with the following,
 
+- _Retryable error saving data blocks for_ ... _Early EOF_
+
+```
+2023-11-01T16:40:22.344+0000 [JettyHttpPool-431] gid:62c9cab0e012f14fca238054 INFO  com.xgen.svc.brs.slurp.res.WTCheckpointResource [WTCheckpointResource.ja
+va:dataBlocksV2:737] - Retryable error saving data blocks for 62c9cab0e012f14fca238054/Notification/a883032b-dbb9-4f79-a37e-b77edc126819: 
+org.eclipse.jetty.io.EofException: Early EOF
+```
+>The Early EOF indicates that the Ops Manager Application server reached the end of the POST stream, but not all data was sent as per the size in the header.IPS (Intrusion Prevention System) and WAF (Web Application Firewall) ?
