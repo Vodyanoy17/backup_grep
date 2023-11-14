@@ -81,7 +81,7 @@ def log_parser(
     """
 
     script_directory = os.path.dirname(__file__)
-    print(script_directory)
+    #print(script_directory)
     file_path = os.path.join(script_directory, "backup_errors.csv")
     errors = read_errors(file_path)
     found_errors, error_lines = find_errors(

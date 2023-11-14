@@ -1,5 +1,6 @@
 import re
 import os
+import fnmatch
 import tempfile
 import webbrowser
 import tkinter as tk
@@ -10,12 +11,40 @@ from tkinter import ttk #, scrolledtext
 from tkcalendar import DateEntry #, Calendar, 
 from tkinter import filedialog, messagebox# #simpledialog, 
 
-def fill_fields_with_default(log_file):
+
+def get_files_list(directory):
+    # List to store the matching file names
+    matching_files = []
+
+    # Iterate over all the files in the directory
+    for filename in os.listdir(directory):
+        # Check if the file name starts with 'mms0' and has the extension '.log'
+        if fnmatch.fnmatch(filename, 'mms0*.log'):
+            # Check if the file name does not contain 'access', 'migration', or 'startup'
+            if all(x not in filename for x in ['access', 'migration', 'startup']):
+                # Get the full path to the file
+                full_path = os.path.join(directory, filename)
+                # Add the file path to the list
+                matching_files.append(full_path)
+
+    return matching_files
+
+
+def fill_fields_with_default(log_files_dir):
     """_summary_
 
     Args:
         log_file (_type_): _description_
     """
+    global log_files_list
+
+    # read all files to list
+    log_files_list = get_files_list(log_files_dir)
+
+    for log_file in log_files_list:
+        file_data_extract(log_file)
+
+def file_data_extract(log_file):
     with open(log_file, "rb") as file:
         """
         fill_fields_with_default(log_file): Reads a log file, extracts the timestamps 
@@ -39,44 +68,98 @@ def fill_fields_with_default(log_file):
         # Use regular expression to find the timestamp
         match_start = re.search(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", second_line )
         match_end = re.search(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", last_line)
+    
+        current_date = start_date_entry.get_date()
+        current_time = start_time_entry.get()
+
         if match_start:
+
             timestamp_str_1 = match_start.group(0)
             timestamp_1 = datetime.strptime(timestamp_str_1, "%Y-%m-%dT%H:%M:%S")
 
-            # Populate the start_date_entry, start_time_entry, and other relevant fields with default values
-            start_date_entry.set_date(timestamp_1.date())
-            start_time_entry.set(timestamp_1.strftime("%H:%M"))
+            # Check if the current values exist
+            if current_date and current_time:
+                # Assume current_date and current_time are the current values in the entries
+                current_timestamp = datetime.strptime(current_time, "%H:%M")
+                # Convert current date and time to datetime for comparison
+                current_datetime = datetime.combine(current_date, current_timestamp.time())
 
+                # Check if the new timestamp is less than the current one
+                if timestamp_1 < current_datetime:
+                    # Populate the start_date_entry, start_time_entry, and other relevant fields with default values
+                    start_date_entry.set_date(timestamp_1.date())
+                    start_time_entry.set(timestamp_1.strftime("%H:%M"))
+            else:
+                # If the current values do not exist, set them to the new values
+                start_date_entry.set_date(timestamp_1.date())
+                start_time_entry.set(timestamp_1.strftime("%H:%M"))
+
+
+        # Assume current_date and current_time are the current values in the entries
+        current_date = end_date_entry.get_date()
+        current_time = end_time_entry.get()
+        
         if match_end:
             timestamp_str_2 = match_end.group(0)
             timestamp_2 = datetime.strptime(timestamp_str_2, "%Y-%m-%dT%H:%M:%S")
 
-            # Populate the start_date_entry
-            end_date_entry.set_date(timestamp_2.date())
-            end_time_entry.set(timestamp_2.strftime("%H:%M"))
-        
+            # Check if the current values exist
+            if current_date and current_time:
+                current_timestamp = datetime.strptime(end_time_entry.get(), "%H:%M")
+                # Convert current date and time to datetime for comparison
+                current_datetime = datetime.combine(current_date, current_timestamp.time())
 
-def select_file():
-    """
-    select_file(): Opens a file dialog for the user to select a file. 
-    Updates the file_entry field with the selected file's path and fills out other 
-    fields with default values based on the selected file.
-    """
-    initial_dir = (
-        file_entry.get()
-    )  # Get the current value in the entry (default or user-selected)
-    filename = filedialog.askopenfilename(initialdir=initial_dir)
+                # Check if the new timestamp is less than the current one
+                if timestamp_2 > current_datetime:
+                    # Populate the start_date_entry
+                    end_date_entry.set_date(timestamp_2.date())
+                    end_time_entry.set(timestamp_2.strftime("%H:%M"))
+            else:
+                end_date_entry.set_date(timestamp_2.date())
+                end_time_entry.set(timestamp_2.strftime("%H:%M"))
 
-    if filename:
+
+def select_directory():
+    """
+    select_directory(): Opens a directory dialog for the user to select a directory. 
+    Updates the file_entry field with the selected directory's path.
+    """
+    initial_dir = file_entry.get()  # Get the current value in the entry (default or user-selected)
+    directory_name = filedialog.askdirectory(initialdir=initial_dir)
+
+    if directory_name:
         file_entry.config(state="normal")  # Change it back to normal (editable)
         file_entry.delete(0, tk.END)
-        file_entry.insert(0, filename)
+        file_entry.insert(0, directory_name)
         # Make the file_entry field read-only
         file_entry.config(state="readonly")
         html_label.set_html("")
         
         # Call the function to fill out the fields with default values
-        fill_fields_with_default(filename)
+        fill_fields_with_default(directory_name)
+
+
+# def select_file():
+#     """
+#     select_file(): Opens a file dialog for the user to select a file. 
+#     Updates the file_entry field with the selected file's path and fills out other 
+#     fields with default values based on the selected file.
+#     """
+#     initial_dir = (
+#         file_entry.get()
+#     )  # Get the current value in the entry (default or user-selected)
+#     filename = filedialog.askopenfilename(initialdir=initial_dir)
+
+#     if filename:
+#         file_entry.config(state="normal")  # Change it back to normal (editable)
+#         file_entry.delete(0, tk.END)
+#         file_entry.insert(0, filename)
+#         # Make the file_entry field read-only
+#         file_entry.config(state="readonly")
+#         html_label.set_html("")
+        
+#         # Call the function to fill out the fields with default values
+#         fill_fields_with_default(filename)
 
 
 def on_end_combobox_click(event):
@@ -153,22 +236,29 @@ def ok_action():
     Returns:
     - None
     """
-    log_file = file_entry.get()
-    if log_file == "" or not os.path.isfile(log_file):
-        messagebox.showinfo("Info", "Please select a file")
+    logs_dir = file_entry.get()
+    if logs_dir == "" or not os.path.isdir(logs_dir):
+        messagebox.showinfo("Info", "Please select a new directory with mms log files")
     else:
         start = start_date_entry.get() + " " + start_time_entry.get()
         end = end_date_entry.get() + " " + end_time_entry.get()
-        html_log = log_parser(
-            log_file, beginning_timestamp=start, end_timestamp=end
-        )
+        html_text = ""
+        for log_file in log_files_list:
+            html_log = log_parser(
+                log_file, beginning_timestamp=start, end_timestamp=end
+            )
+            # Get the filename from the full path
+            filename = os.path.basename(log_file)
 
-        html_label.set_html(html_log)
-        open_web(html_log)
+            # Create HTML text with the filename as a header
+            html_log = f"<h3>{filename}</h3>" + html_log
+            html_text += html_log
+
+        html_label.set_html(html_text)
+        open_web(html_text)
 
 def open_web(html_content):
     html_log = """ <html><body>""" + html_content + """ </body> </html> """
-    print(html_log)
     # Create a temporary file
     temp = tempfile.NamedTemporaryFile(delete=False, suffix='.html')
     temp.write(html_content.encode('utf-8'))
@@ -182,6 +272,7 @@ def cancel_action():
     root.destroy()
 
 
+log_files_list = []
 root = tk.Tk()
 
 default_directory = os.getcwd()  # Get the current working directory
@@ -193,7 +284,7 @@ file_entry.insert(0, default_directory)  # Set the default directory
 # Make the file_entry field read-only
 file_entry.config(state="readonly")
 file_entry.grid(row=0, column=1)
-tk.Button(root, text="Browse", command=select_file).grid(row=0, column=2)
+tk.Button(root, text="Browse", command=select_directory).grid(row=0, column=2)
 
 tk.Label(root, text="Start Time frame:").grid(row=1)
 start_date_entry = DateEntry(root)
