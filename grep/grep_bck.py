@@ -49,17 +49,19 @@ def find_errors(log_file, errors, beginning_timestamp, end_timestamp):
 
     with open(log_file, "r") as file:
         for line in file:
+            # fint the timestaml in the line
             match_time = re.search(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", line)
             if match_time:
                 timestamp_str = match_time.group(0)
                 log_datetime = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S")
 
-                if begin_datetime <= log_datetime <= end_datetime:
-                    for error in errors:
-                        if error in line:
-                            error_counts[error] += 1
-                            if error not in error_lines:
-                                error_lines[error] = line.strip()
+            # Check if the error occurred within the timeframe or if the timestamp in the line is invalid.
+            if (match_time and (begin_datetime <= log_datetime <= end_datetime))  or not match_time:
+                for error in errors:
+                    if error in line:
+                        error_counts[error] += 1
+                        if error not in error_lines:
+                            error_lines[error] = line.strip()
     return error_counts, error_lines
 
 
@@ -90,11 +92,9 @@ def log_parser(
         beginning_timestamp=beginning_timestamp,
         end_timestamp=end_timestamp,
     )
-    # Example of search link
+    # Example of the search link
     # https://search.corp.mongodb.com/#q=%22MULTIPLE_CONCURRENT_SNAPSHOTS%22&sort=date%20descending&f:facet-product=[Ops%20Manager]
-    
-    
-
+  
     html_log = ""
     for error, count in found_errors.items():
         search_link = f"""https://search.corp.mongodb.com/#q=%22{error}%22&sort=date%20descending&f:facet-product=[Ops%20Manager]"""
