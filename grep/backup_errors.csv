@@ -23,6 +23,7 @@ IOException while writing blocks
 Invalid config: Two or more processes have their Port 
 LOW_FILESYSTEM_STORE_FREE_SPACE_PERCENT
 MULTIPLE_CONCURRENT_SNAPSHOTS
+No eligible backup modules to target for oplog tailing
 No space left on device
 Non-retryable failure while saving block(s)
 Oplog tail targeting failed: No candidate backup module sessions found
@@ -42,3 +43,4 @@ backup cursor extend not updated
 handleError
 jetty.io.EofException
 mongod binary version from primary mongod is empty
+Unable to find a primary for target replica set from monitoring data
