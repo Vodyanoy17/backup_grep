@@ -1,6 +1,8 @@
-# The error messages are ordered alphabetically, except for the most generic error placed at the end. 
 # Additionally, we have the flexibility to comment out any error by using the '#' symbol
 # The TARGETING_MISMATCH is typically caused by the WTAgentTargetingSvc function updating the WT checkpoint target host during the backup due to a communication issue from the Agent to Ops Manager or the Agent to the mongod process.
+# The error messages are ordered alphabetically, except for the most generic error placed at the end. 
+#Exception
+"We're sorry, an unexpected error has occurred"
 API validation failure on abort 
 Abort request for 
 Abort triggered by error from
@@ -8,6 +10,8 @@ Abort triggered on a sharded cluster
 Aborting in progress snapshotId 
 Cannot find blockfile with primary read preference
 Caused by: java.lang.OutOfMemoryError: Direct buffer memory
+Could not connect to SMTP host: localhost
+ERROR
 Exception authenticating MongoCredential
 Exception opening socket
 Excluding replica set from checkpointing
@@ -15,8 +19,12 @@ FCV missing from some host
 Failed to save an s3 object.
 Failure batch inserting
 Got socket exception on connection 
+IOException while writing blocks
+Invalid config: Two or more processes have their Port 
 LOW_FILESYSTEM_STORE_FREE_SPACE_PERCENT
 MULTIPLE_CONCURRENT_SNAPSHOTS
+No space left on device
+Non-retryable failure while saving block(s)
 Oplog tail targeting failed: No candidate backup module sessions found
 Retryable error saving data blocks for
 RuntimeException while getting blocks for file WiredTiger
@@ -27,12 +35,10 @@ Thread pool currently has less than
 Timeout while receiving message
 Unable to find a primary for target replica set from monitoring data.
 Unable to obtain MongoSvc for checking free space on
+Unsupported or unrecognized SSL message
 WT snapshot has pending work. Will not retarget until that work is completed
-We're sorry, an unexpected error has occurred 
 Wtc cluster topology shard was aborted
 backup cursor extend not updated 
 handleError
 jetty.io.EofException
 mongod binary version from primary mongod is empty
-#Exception
-ERROR

@@ -133,7 +133,7 @@ def select_directory():
         file_entry.insert(0, directory_name)
         # Make the file_entry field read-only
         file_entry.config(state="readonly")
-        html_label.set_html("")
+        #html_label.set_html("")
         
         # Call the function to fill out the fields with default values
         fill_fields_with_default(directory_name)
@@ -254,14 +254,14 @@ def ok_action():
             html_log = f"<h3>{filename}</h3>" + html_log
             html_text += html_log
 
-        html_label.set_html(html_text)
+        #html_label.set_html(html_text)
         open_web(html_text)
 
 def open_web(html_content):
     html_log = """ <html><body>""" + html_content + """ </body> </html> """
     # Create a temporary file
     temp = tempfile.NamedTemporaryFile(delete=False, suffix='.html')
-    temp.write(html_content.encode('utf-8'))
+    temp.write(html_log.encode('utf-8'))
     temp.close()
 
     # Open the file in the web browser
@@ -311,16 +311,16 @@ end_time_entry.bind("<Button-1>", on_end_combobox_click)
 tk.Button(root, text="OK", command=ok_action).grid(row=3, column=0)
 tk.Button(root, text="Cancel", command=cancel_action).grid(row=3, column=1)
 
-# Horizontal separation line
-separator = ttk.Separator(root, orient="horizontal")
-separator.grid(row=4, column=0, columnspan=3, sticky="ew", pady=10)
+# # Horizontal separation line
+# separator = ttk.Separator(root, orient="horizontal")
+# separator.grid(row=4, column=0, columnspan=3, sticky="ew", pady=10)
 
-# Adding an HTMLLabel below the existing code
-html_label = HTMLLabel(root, html="")
-html_label.grid(row=6, column=0, columnspan=3, pady=10, sticky="nsew")
+# # Adding an HTMLLabel below the existing code
+# html_label = HTMLLabel(root, html="")
+# html_label.grid(row=6, column=0, columnspan=3, pady=10, sticky="nsew")
 
-# Configure grid column and row properties to make the HTMLLabel resize with the main window
-root.columnconfigure(0, weight=1)
-root.rowconfigure(6, weight=1)
+# # Configure grid column and row properties to make the HTMLLabel resize with the main window
+# root.columnconfigure(0, weight=1)
+# root.rowconfigure(6, weight=1)
 
 root.mainloop()
