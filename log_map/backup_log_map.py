@@ -70,6 +70,10 @@ patterns = [building_status_map,
             snapshot_progress
             ]
 
+start_end_map_events = [
+    updating_checkpoint_targeting,
+    successfully_released_lock
+]
 
 def read_errors(file_name):
     with open(file_name, 'r') as file:
@@ -90,46 +94,52 @@ def get_var_names(var_list):
     return var_names
 
 def main():
-    
+    global start_end_map_events
+
+    #patterns_counters, stop_backup_errors = scan_all_events(patterns)
+
+    patterns_counters = scan_all_events(start_end_map_events)
+    pprint (patterns_counters,sort_dicts=False)
+ #   print("STOP EVENTS")
+    #pprint (stop_backup_errors,sort_dicts=False)
+#    print (stop_backup_errors)
+
+def scan_all_events(patterns):
     patterns_names = get_var_names(patterns)
     big_patterns = list(zip(patterns, patterns_names))
 
     # Create a dictionary where all values are zero
     patterns_counters = {key:[0,[]] for key in patterns_names} 
-    stop_backup_errors = {}
 
-    parser = argparse.ArgumentParser(description="Обработка лог-файла")
-    parser.add_argument("file_name", help="Имя лог-файла для обработки")
+    parser = argparse.ArgumentParser(description="Parsing log -file")
+    parser.add_argument("file_name", help="the name of the log-file")
 
     args = parser.parse_args()
     line_number = 0
 
     with open(args.file_name, 'r') as log_file:
-
         # Read all available backup errors
         script_directory = os.path.dirname(__file__)
         file_path = os.path.join(script_directory, 'backup_errors.csv')
-        errors = read_errors(file_path)
+        #errors = read_errors(file_path)
         for line in log_file:
             line_number += 1 
             for pattern in big_patterns:
                 match = re.search(pattern[0], line)
                 if match:
                     patterns_counters[pattern[1]][0] += 1
-                    patterns_counters[pattern[1]][1].append(line_number)
-                for error in errors:
-                    if error in line:
-                        if error in stop_backup_errors:
-                            stop_backup_errors[error].append(line_number)
-                        else:
-                            stop_backup_errors[str(error)] = [line_number]
-            if line_number > 200000:
-                break
-
-    pprint (patterns_counters,sort_dicts=False)
-    print("STOP EVENTS")
-    #pprint (stop_backup_errors,sort_dicts=False)
-    print (stop_backup_errors)
+                    replica_value = match.group("replica")
+                    gid_values = match.group("gid")
+                    patterns_counters[pattern[1]][1].append([line_number,replica_value])
+                # for error in errors:
+                #     if error in line:
+                #         if error in stop_backup_errors:
+                #             stop_backup_errors[error].append(line_number)
+                #         else:
+                #             stop_backup_errors[str(error)] = [line_number]
+            # if line_number > 200000:
+            #     break
+    return patterns_counters #,stop_backup_errors
 
 if __name__ == "__main__":
     main()
