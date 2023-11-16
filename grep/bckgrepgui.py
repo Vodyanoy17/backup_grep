@@ -1,5 +1,7 @@
 import re
 import os
+import gzip
+import shutil
 import fnmatch
 import tempfile
 import webbrowser
@@ -11,7 +13,6 @@ from tkinter import ttk #, scrolledtext
 from tkcalendar import DateEntry #, Calendar, 
 from tkinter import filedialog, messagebox# #simpledialog, 
 
-
 def get_files_list(directory):
     # List to store the matching file names
     matching_files = []
@@ -19,14 +20,22 @@ def get_files_list(directory):
     # Iterate over all the files in the directory
     for filename in os.listdir(directory):
         # Check if the file name starts with 'mms0' and has the extension '.log'
-        if fnmatch.fnmatch(filename, 'mms0*.log'):
+        if fnmatch.fnmatch(filename, 'mms0*.log') or fnmatch.fnmatch(filename, 'mms0*.log.gz'):
             # Check if the file name does not contain 'access', 'migration', or 'startup'
             if all(x not in filename for x in ['access', 'migration', 'startup']):
-                # Get the full path to the file
-                full_path = os.path.join(directory, filename)
-                # Add the file path to the list
-                matching_files.append(full_path)
-
+                if filename.endswith('.gz'):
+                    # Create a temporary file to extract the content of the gzipped log file
+                    full_path = os.path.join(directory, filename)
+                    with tempfile.NamedTemporaryFile(mode='w+t', delete=False) as temp_file:
+                        with gzip.open(full_path, 'rt') as gzipped_file:
+                            shutil.copyfileobj(gzipped_file, temp_file)
+                            #print(temp_file.name)
+                            matching_files.append([filename,temp_file.name])
+                else:
+                    # Get the full path to the file
+                    full_path = os.path.join(directory, filename)
+                    # Add the file path to the list
+                    matching_files.append([filename,full_path])
     return matching_files
 
 
@@ -41,11 +50,16 @@ def fill_fields_with_default(log_files_dir):
     # read all files to list
     log_files_list = get_files_list(log_files_dir)
 
-    for log_file in log_files_list:
+    for _,log_file in log_files_list:
         file_data_extract(log_file)
 
+
+# Define a function to find the timestamp using regular expression
+def find_timestamp(line):
+    return re.search(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", line)
+
 def file_data_extract(log_file):
-    with open(log_file, "rb") as file:
+    with open(log_file,'rb') as file:
         """
         fill_fields_with_default(log_file): Reads a log file, extracts the timestamps 
         from the second and last lines, and populates the relevant fields with these timestamps.
@@ -66,8 +80,8 @@ def file_data_extract(log_file):
         last_line = file.readline().decode('utf-8')
 
         # Use regular expression to find the timestamp
-        match_start = re.search(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", second_line )
-        match_end = re.search(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", last_line)
+        match_start = find_timestamp(second_line)
+        match_end = find_timestamp(last_line)
     
         current_date = start_date_entry.get_date()
         current_time = start_time_entry.get()
@@ -139,29 +153,6 @@ def select_directory():
         fill_fields_with_default(directory_name)
 
 
-# def select_file():
-#     """
-#     select_file(): Opens a file dialog for the user to select a file. 
-#     Updates the file_entry field with the selected file's path and fills out other 
-#     fields with default values based on the selected file.
-#     """
-#     initial_dir = (
-#         file_entry.get()
-#     )  # Get the current value in the entry (default or user-selected)
-#     filename = filedialog.askopenfilename(initialdir=initial_dir)
-
-#     if filename:
-#         file_entry.config(state="normal")  # Change it back to normal (editable)
-#         file_entry.delete(0, tk.END)
-#         file_entry.insert(0, filename)
-#         # Make the file_entry field read-only
-#         file_entry.config(state="readonly")
-#         html_label.set_html("")
-        
-#         # Call the function to fill out the fields with default values
-#         fill_fields_with_default(filename)
-
-
 def on_end_combobox_click(event):
     """
     Select the end_time_combobox with the next greater value from the current value
@@ -219,6 +210,50 @@ def on_start_combobox_click(event):
     # Set the current attribute to the index + 1 (next value)
     start_time_entry.current(index)
 
+import concurrent.futures
+import os
+
+def process_log(log_file, start, end):
+    """
+    Process a single log file and return the HTML representation.
+
+    Args:
+        log_file (str): Path to the log file.
+        start (str): Beginning timestamp.
+        end (str): End timestamp.
+
+    Returns:
+        str: HTML representation of the log file.
+    """
+    html_log = log_parser(log_file[1], beginning_timestamp=start, end_timestamp=end)
+    filename = os.path.basename(log_file[0])
+    return f"<h3>{filename}</h3>" + html_log
+
+def process_logs_multithreaded(log_files_list, start, end):
+    """
+    Process multiple log files in parallel using multithreading.
+
+    Args:
+        log_files_list (list): List of log file paths.
+        start (str): Beginning timestamp.
+        end (str): End timestamp.
+
+    Returns:
+        str: Combined HTML representation of all log files.
+    """
+    html_text = ""
+
+    # Using ThreadPoolExecutor for multithreading
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        # Process each log file concurrently
+        futures = [executor.submit(process_log, log_file_pair, start, end) for log_file_pair in log_files_list]
+
+        # Collect the results as they become available
+        for future in concurrent.futures.as_completed(futures):
+            html_log = future.result()
+            html_text += html_log
+
+    return html_text
 
 def ok_action():
     """
@@ -243,16 +278,17 @@ def ok_action():
         start = start_date_entry.get() + " " + start_time_entry.get()
         end = end_date_entry.get() + " " + end_time_entry.get()
         html_text = ""
-        for log_file in log_files_list:
-            html_log = log_parser(
-                log_file, beginning_timestamp=start, end_timestamp=end
-            )
-            # Get the filename from the full path
-            filename = os.path.basename(log_file)
+        # for log_file in log_files_list:
+        #     html_log = log_parser(
+        #         log_file, beginning_timestamp=start, end_timestamp=end
+        #     )
+        #     # Get the filename from the full path
+        #     filename = os.path.basename(log_file)
 
-            # Create HTML text with the filename as a header
-            html_log = f"<h3>{filename}</h3>" + html_log
-            html_text += html_log
+        #     # Create HTML text with the filename as a header
+        #     html_log = f"<h3>{filename}</h3>" + html_log
+        #     html_text += html_log
+        html_text = process_logs_multithreaded(log_files_list, start, end)
 
         #html_label.set_html(html_text)
         open_web(html_text)
