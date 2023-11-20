@@ -6,6 +6,7 @@ import fnmatch
 import tempfile
 import webbrowser
 import tkinter as tk
+import concurrent.futures
 from datetime import datetime
 from grep_bck import log_parser
 from tkhtmlview import HTMLLabel
@@ -37,6 +38,15 @@ def get_files_list(directory):
                     # Add the file path to the list
                     matching_files.append([filename,full_path])
     return matching_files
+
+def delete_temporary_files(log_files_list):
+    for original_name,log_file in log_files_list:
+        if original_name.endswith('.gz'):
+            try:
+                os.remove(log_file)
+                print(f"{log_file} has been deleted successfully.")
+            except OSError as e:
+                print(f"Error: {log_file} - {e}")
 
 
 def fill_fields_with_default(log_files_dir):
@@ -210,8 +220,7 @@ def on_start_combobox_click(event):
     # Set the current attribute to the index + 1 (next value)
     start_time_entry.current(index)
 
-import concurrent.futures
-import os
+
 
 def process_log(log_file, start, end):
     """
@@ -278,20 +287,10 @@ def ok_action():
         start = start_date_entry.get() + " " + start_time_entry.get()
         end = end_date_entry.get() + " " + end_time_entry.get()
         html_text = ""
-        # for log_file in log_files_list:
-        #     html_log = log_parser(
-        #         log_file, beginning_timestamp=start, end_timestamp=end
-        #     )
-        #     # Get the filename from the full path
-        #     filename = os.path.basename(log_file)
-
-        #     # Create HTML text with the filename as a header
-        #     html_log = f"<h3>{filename}</h3>" + html_log
-        #     html_text += html_log
         html_text = process_logs_multithreaded(log_files_list, start, end)
-
-        #html_label.set_html(html_text)
         open_web(html_text)
+        delete_temporary_files(log_files_list)
+
 
 def open_web(html_content):
     html_log = """ <html><body>""" + html_content + """ </body> </html> """
@@ -305,6 +304,7 @@ def open_web(html_content):
 
 def cancel_action():
     """Cancels the action and closes the main Tkinter window."""
+ 
     root.destroy()
 
 
@@ -346,17 +346,5 @@ end_time_entry.bind("<Button-1>", on_end_combobox_click)
 
 tk.Button(root, text="OK", command=ok_action).grid(row=3, column=0)
 tk.Button(root, text="Cancel", command=cancel_action).grid(row=3, column=1)
-
-# # Horizontal separation line
-# separator = ttk.Separator(root, orient="horizontal")
-# separator.grid(row=4, column=0, columnspan=3, sticky="ew", pady=10)
-
-# # Adding an HTMLLabel below the existing code
-# html_label = HTMLLabel(root, html="")
-# html_label.grid(row=6, column=0, columnspan=3, pady=10, sticky="nsew")
-
-# # Configure grid column and row properties to make the HTMLLabel resize with the main window
-# root.columnconfigure(0, weight=1)
-# root.rowconfigure(6, weight=1)
 
 root.mainloop()
