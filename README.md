@@ -22,7 +22,12 @@ we are looking for the most popular backup errors in MMS0.log file
    ```
    $ pip install -r requirements.txt
    ```
-5. Example of execution
+   Solution for Linux, Windows (WSL/Ubuntu) and MacOS: Please install `python-tk` manually from Homebrew
+   ```
+   $ brew install python-tk
+   ````
+   
+6. Example of execution
    ```
     <venv_name>/bin/python /backup_grep/grep/bckgrepgui.py
    ```
