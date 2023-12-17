@@ -66,6 +66,7 @@ def fill_fields_with_default(log_files_dir):
         messagebox.showwarning("Warning", "No mms0*.log|gz files found in this directory")
         root.destroy()  # Destroy the main window
     else:    
+        enable_time_widgets(start_date_entry, start_time_entry, end_date_entry, end_time_entry)
         for _,log_file in log_files_list:
             file_data_extract(log_file)
 
@@ -313,6 +314,19 @@ def cancel_action():
  
     root.destroy()
 
+def disable_time_widgets(start_date_entry, start_time_entry, end_date_entry, end_time_entry):
+    start_date_entry.config(state='disabled')
+    start_time_entry.config(state='disabled')
+    end_date_entry.config(state='disabled')
+    end_time_entry.config(state='disabled')
+
+def enable_time_widgets(start_date_entry, start_time_entry, end_date_entry, end_time_entry):
+    start_date_entry.config(state='normal')
+    start_time_entry.config(state='normal')
+    end_date_entry.config(state='normal')
+    end_time_entry.config(state='normal')
+
+
 
 log_files_list = []
 root = tk.Tk()
@@ -349,6 +363,8 @@ end_time_entry = ttk.Combobox(
 end_time_entry.grid(row=2, column=2)
 end_time_entry.bind("<Button-1>", on_end_combobox_click)
 
+# Disable the widgets
+disable_time_widgets(start_date_entry, start_time_entry, end_date_entry, end_time_entry)
 
 tk.Button(root, text="OK", command=ok_action).grid(row=3, column=0)
 tk.Button(root, text="Cancel", command=cancel_action).grid(row=3, column=1)
