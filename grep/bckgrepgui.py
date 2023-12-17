@@ -60,8 +60,14 @@ def fill_fields_with_default(log_files_dir):
     # read all files to list
     log_files_list = get_files_list(log_files_dir)
 
-    for _,log_file in log_files_list:
-        file_data_extract(log_file)
+    if len(log_files_list) == 0:
+        root = tk.Tk()
+        root.withdraw()  # Hide the main window
+        messagebox.showwarning("Warning", "No mms0*.log|gz files found in this directory")
+        root.destroy()  # Destroy the main window
+    else:    
+        for _,log_file in log_files_list:
+            file_data_extract(log_file)
 
 
 # Define a function to find the timestamp using regular expression
@@ -313,7 +319,7 @@ root = tk.Tk()
 
 default_directory = os.getcwd()  # Get the current working directory
 
-tk.Label(root, text="Log file location:").grid(row=0)
+tk.Label(root, text="Log files (mms0*.log|gz) location: ").grid(row=0)
 file_entry = tk.Entry(root,width=30)
 file_entry.insert(0, default_directory)  # Set the default directory
 

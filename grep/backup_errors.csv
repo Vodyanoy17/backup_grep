@@ -10,7 +10,7 @@ Abort triggered on a sharded cluster
 Aborting in progress snapshotId 
 Cannot find blockfile with primary read preference
 Caused by: java.lang.OutOfMemoryError: Direct buffer memory
-Could not connect to SMTP host: localhost
+#Could not connect to SMTP host: localhost
 ERROR
 Exception authenticating MongoCredential
 Exception opening socket
@@ -20,7 +20,7 @@ Failed to save an s3 object.
 Failure batch inserting
 Got socket exception on connection 
 IOException while writing blocks
-Invalid config: Two or more processes have their Port 
+#Invalid config: Two or more processes have their Port 
 LOW_FILESYSTEM_STORE_FREE_SPACE_PERCENT
 MULTIPLE_CONCURRENT_SNAPSHOTS
 No eligible backup modules to target for oplog tailing
