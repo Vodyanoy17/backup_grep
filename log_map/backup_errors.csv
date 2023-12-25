@@ -1,37 +1,37 @@
-API validation failure on abort 
-Abort request for 
-Abort triggered by error from
-Abort triggered on a sharded cluster
-Aborting in progress snapshotId 
-Cannot find blockfile with primary read preference
-Caused by: java.lang.OutOfMemoryError: Direct buffer memory
-Early EOF
-Exception authenticating MongoCredential
-Exception opening socket
-Excluding replica set from checkpointing.next
-FCV missing from some host
-Failed to save an s3 object.
-Failure batch inserting
-Got socket exception on connection 
-LOW_FILESYSTEM_STORE_FREE_SPACE_PERCENT
-MULTIPLE_CONCURRENT_SNAPSHOTS
-Oplog tail targeting failed: No candidate backup module sessions found
-Retryable error saving data blocks for
-Retryable error saving data blocks for 
-RuntimeException while getting blocks for file WiredTiger
-Skipping creation of snapshot, one already exists for group
-The quota has been exceeded for this bucket or account
-There was an IndexCollection error for
-Thread pool currently has less than
-Timeout while receiving message
-Unable to find a primary for target replica set from monitoring data.
-Unable to obtain MongoSvc for checking free space on
-WT snapshot has pending work. Will not retarget until that work is completed
-We're sorry, an unexpected error has occurred 
-Wtc cluster topology shard was aborted
-backup cursor extend not updated 
-handleError
-jetty.io.EofException
-mongod binary version from primary mongod is empty
+#API validation failure on abort 
+#Abort request for 
+#Abort triggered by error from
+#Abort triggered on a sharded cluster
+#Aborting in progress snapshotId 
+#Cannot find blockfile with primary read preference
+#Caused by: java.lang.OutOfMemoryError: Direct buffer memory
+#Early EOF
+#Exception authenticating MongoCredential
+#Exception opening socket
+#Excluding replica set from checkpointing.next
+#FCV missing from some host
+#Failed to save an s3 object.
+#Failure batch inserting
+#Got socket exception on connection 
+#LOW_FILESYSTEM_STORE_FREE_SPACE_PERCENT
+#MULTIPLE_CONCURRENT_SNAPSHOTS
+#Oplog tail targeting failed: No candidate backup module sessions found
+#Retryable error saving data blocks for
+#Retryable error saving data blocks for 
+#RuntimeException while getting blocks for file WiredTiger
+#Skipping creation of snapshot, one already exists for group
+#The quota has been exceeded for this bucket or account
+#There was an IndexCollection error for
+#Thread pool currently has less than
+#Timeout while receiving message
+#Unable to find a primary for target replica set from monitoring data.
+#Unable to obtain MongoSvc for checking free space on
+#WT snapshot has pending work. Will not retarget until that work is completed
+#"We're sorry, an unexpected error has occurred"
+#backup cursor extend not updated 
+#handleError
+#jetty.io.EofException
+#mongod binary version from primary mongod is empty
 #Exception
-ERROR
+CLUSTERSHOT_ABORTED
+ERROR backup

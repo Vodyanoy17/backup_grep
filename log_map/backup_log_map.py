@@ -20,16 +20,21 @@ import re
 import csv
 import argparse
 from pprint import pprint
+from report_print import print_backup_report
+from datetime import datetime
+from collections import namedtuple
 
-building_status_map = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) DEBUG .+?Building status map$"
-ideal_backup_module = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) - Ideal backup module is available for WT checkpointing"
+## The header of the sharded backup
+wtc_clustershot_started_shards = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) INFO .+ Wtc clustershot started for groupId: (?P=gid), clusterId: (?P<clusterid>.+?), topology:"
+#building_status_map = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) DEBUG .+?Building status map$"
+ideal_backup_module = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) .+ - Ideal backup module is available for WT checkpointing"
 updating_checkpoint_targeting = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) .+? backup.jobs.+?\.(?P<replica>(.+?)) \[.+?\] - Updating checkpoint targeting selection from"
 full_incremental_day_of_week = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) .+? - fullIncrementalDayOfWeek not set"
-last_full_incremental_timestamp = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) DEBUG backup.jobs.(?P=gid)\.(?P<replica>.+?) .+? - lastFullIncrementalTimestamp is empty; should take full snapshot now.$"
+supports_incremental_backup = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) INFO  backup.jobs.(?P=gid).(?P<replica>.+?) .+supports incremental backup$"
 forcing_full_incremental1 = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) .+? - Forcing full incremental snapshot: because today is SATURDAY"
 forcing_full_incremental2 = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) .+? - Forcing full incremental snapshot: Last full incremental snapshot is too long ago"
-description_request_from = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) .+? - Description request from "
-uccessful_post = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) .+?Successful post /description for groupId: (?P=gid), rsId: (?P<replica>(.+?))$"
+description_request_from = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) .+? - Description request from (?P=gid)\/(?P<replica>\w+?)\/"
+successful_post = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) .+?Successful post /description for groupId: (?P=gid), rsId: (?P<replica>(.+?))$"
 excluding_replica_set = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) .+?\.(?P=gid)\.(?P<replica>.+?) .+? - Excluding replica set from checkpointing.next: BackupStatus lastStableRecoveryTimestamp "
 file_list_request_0 = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) .+? - File List request 0 from (?P=gid)\/(?P<replica>.+?)\/"
 saved_file_list_from = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) .+? - Saved file list from (?P=gid)\/(?P<replica>.+?)\/"
@@ -42,26 +47,26 @@ saving_block_files_complete = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}
 completing_snapshot = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) .+?  backup.jobs.(?P=gid)\.(?P<replica>.+?) .+? - Snapshot (?P<backupID>.+?) completing snapshot.$"
 successfully_released_lock = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) .+?  backup.jobs.(?P=gid)\.(?P<replica>.+?) .+? - Successfully released lock for Snapshot (?P<backupID>.+?). Snapshot is complete"
 snapshot_progress = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) INFO .+?Snapshot progress: read \d+? bytes total"
-loading_backupdeployment = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) DEBUG .+?Loading BackupDeployment$"
+#loading_backupdeployment = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) DEBUG .+?Loading BackupDeployment$"
 ## STOP EVENTS PATTERNS
+error_backup_jobd = "^(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}).+ backup\.jobs\.(?P<gid>\w+)\.(?P<replica>\w+).+$"
 
-
-patterns = [building_status_map,
-            loading_backupdeployment,
-            ideal_backup_module , 
+patterns = [wtc_clustershot_started_shards,
+            #building_status_map, NO cluster_ID inside
+            #loading_backupdeployment,NO cluster_ID inside
+            #ideal_backup_module , NO cluster_ID inside
             updating_checkpoint_targeting,
             full_incremental_day_of_week,
-            last_full_incremental_timestamp,
+            supports_incremental_backup,
             forcing_full_incremental1,
             forcing_full_incremental2,
 #            excluding_replica_set, stop event
             description_request_from,
-            uccessful_post,
+            successful_post,
             file_list_request_0,
             saved_file_list_from,
             backup_cursor_extend_updated,
             finalized_file_list_for,
-
             finished_analyzing_files,
  #           fs_analiseinf_files, not needed?
             updating_snapshot_with,
@@ -70,10 +75,56 @@ patterns = [building_status_map,
             snapshot_progress
             ]
 
+
 start_end_map_events = [
+    wtc_clustershot_started_shards,
     updating_checkpoint_targeting,
-    successfully_released_lock
+    full_incremental_day_of_week,
+    supports_incremental_backup,
+    forcing_full_incremental1,
+    forcing_full_incremental2,
+    description_request_from,
+    successful_post,
+    successfully_released_lock,
+    excluding_replica_set
 ]
+
+def shard_backup_header_parser(input_string):
+    #input_string = "[WtShardedClusterTopology.Shard(_rsId=myShard_1, _shardName=myShard_1, _aborted=false, _descriptionId=null), WtShardedClusterTopology.Shard(_rsId=myShard_0, _shardName=myShard_0, _aborted=false, _descriptionId=null)], _configs=[WtShardedClusterTopology.CSRS(_rsId=config-configRS-65449d79a064331ae268a0ea, _csrsId=configRS, _hostId=null, _aborted=false, _descriptionId=null)], _scheduledTimestamp=TS time:Fri Nov 03 07:15:18 GMT 2023 inc:1, _aborting=false)"
+    
+    # Regular expression to match entities with _rsId and _shardName
+    pattern = re.compile(r"_rsId=([^,]+), _shardName=([^,]+)")
+
+    # Find all matches
+    matches = pattern.findall(input_string)
+
+    # Extract values for _rsId and _shardName
+    for match in matches:
+        rs_id, shard_name = match
+
+
+    # Regular expression to match the last entity with _rsId and _csrsId
+    csrs_entity_pattern = re.compile(r"_rsId=([^,]+), _csrsId=([^,]+)")
+
+    # Find the last match
+    csrs_entity_match = csrs_entity_pattern.search(input_string)
+
+        
+    rs = []
+    # Output the results
+    for match in matches:
+        rs_id, shard_name = match
+        rs.append ((rs_id, shard_name, ))
+
+    # Extract values for _rsId and _csrsId for the last entity
+    if csrs_entity_match:
+        rs_id_last, csrs_id = csrs_entity_match.groups()
+        rs.append ((rs_id_last, csrs_id))
+ 
+    return rs
+    
+
+
 
 def read_errors(file_name):
     with open(file_name, 'r') as file:
@@ -93,21 +144,12 @@ def get_var_names(var_list):
 
     return var_names
 
-def main():
-    global start_end_map_events
-
-    #patterns_counters, stop_backup_errors = scan_all_events(patterns)
-
-    patterns_counters = scan_all_events(start_end_map_events)
-    pprint (patterns_counters,sort_dicts=False)
- #   print("STOP EVENTS")
-    #pprint (stop_backup_errors,sort_dicts=False)
-#    print (stop_backup_errors)
 
 def scan_all_events(patterns):
     patterns_names = get_var_names(patterns)
     big_patterns = list(zip(patterns, patterns_names))
 
+    stop_backup_errors ={}
     # Create a dictionary where all values are zero
     patterns_counters = {key:[0,[]] for key in patterns_names} 
 
@@ -121,25 +163,185 @@ def scan_all_events(patterns):
         # Read all available backup errors
         script_directory = os.path.dirname(__file__)
         file_path = os.path.join(script_directory, 'backup_errors.csv')
-        #errors = read_errors(file_path)
+        errors = read_errors(file_path)
         for line in log_file:
             line_number += 1 
             for pattern in big_patterns:
                 match = re.search(pattern[0], line)
                 if match:
+
                     patterns_counters[pattern[1]][0] += 1
-                    replica_value = match.group("replica")
+
+
+                    try:
+                        replica_value = match.group("replica")
+                    except:
+                        replica_value = ""
+                         # TODO Not good need to change
+                        if pattern[1] == "wtc_clustershot_started_shards":  
+                            replica_value = shard_backup_header_parser(line)
+
+                    # Get Project ID
                     gid_values = match.group("gid")
+
+                    # Get RS ID
                     patterns_counters[pattern[1]][1].append([line_number,replica_value])
-                # for error in errors:
-                #     if error in line:
-                #         if error in stop_backup_errors:
-                #             stop_backup_errors[error].append(line_number)
-                #         else:
-                #             stop_backup_errors[str(error)] = [line_number]
+
+            for error in errors:
+                if error in line:
+                    #print(error,line_number,line)
+                    if error in stop_backup_errors:
+                        stop_backup_errors[error].append(line_number)
+                    else:
+                        stop_backup_errors[error] = [line_number]
             # if line_number > 200000:
             #     break
-    return patterns_counters #,stop_backup_errors
+    return patterns_counters ,stop_backup_errors
+
+
+# Define a namedtuple to hold information about each cluster
+ClusterInfo = namedtuple("ClusterInfo", ["group_id", "cluster_id", "timestamp","backup_global_events","shards"])
+ShardInfo = namedtuple("ShardInfo", ["rs_id", "shard_name", "backup_events", "detected_errors"])
+
+def scan_all_events_new(patterns):
+    backupsInfo = []
+    patterns_names = get_var_names(patterns)
+    big_patterns = list(zip(patterns, patterns_names))
+
+    parser = argparse.ArgumentParser(description="Parsing log -file")
+    parser.add_argument("file_name", help="the name of the log-file")
+
+    args = parser.parse_args()
+    line_number = 0
+
+    with open(args.file_name, 'r') as log_file:
+        # Read all available backup errors
+        script_directory = os.path.dirname(__file__)
+        file_path = os.path.join(script_directory, 'backup_errors.csv')
+        errors = read_errors(file_path)
+
+        for line in log_file:
+            line_number += 1 
+            for pattern in big_patterns:
+                match = re.search(pattern[0], line)
+                if match:
+                    #print(pattern[1])
+                    # Get Project ID
+                    gid_values = match.group("gid")
+                    timestamp_str = match.group("timestamp")
+                    timestamp_value = datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S.%f%z')
+                    rs_id = None
+                    #print("!")
+                    try:
+                        rs_id = match.group("replica")
+                    except:
+      
+                         # TODO Not good need to change
+                         # handle the initial start backup event per cluster/project
+                         # Fetch the sharding info
+
+                        if pattern[1] == "wtc_clustershot_started_shards":  
+                            clusterid = match.group("clusterid")
+                            replica_value = []
+                            replica_value = shard_backup_header_parser(line)
+                            
+                            backup = ClusterInfo(gid_values,clusterid, timestamp_value, [],[])
+                            for rs in replica_value:
+                                backup.shards.append(ShardInfo(rs[0],rs[1],[],[]))    
+
+                            backupsInfo.append(backup)
+
+                    # TODO handle the case when we get the backup event with out handle the backup initial start event before this
+                    # could be happen when we have partial data in the mmso log file    
+
+                    # Add event to exiting backup timeline
+                    # TODO change 
+                    if rs_id is not None:
+                        for backup in reversed(backupsInfo):
+                            if backup.group_id == gid_values and backup.timestamp < timestamp_value :
+                                #print("!!",rs_id,pattern[1])
+                                if rs_id == backup.cluster_id:
+                                    #print("!!!")
+                                    backup.backup_global_events.append([line_number,timestamp_value,pattern[1]])
+                                else:
+                                    for shard in backup.shards:
+                                        if shard.rs_id == rs_id:
+                                            #print("!!!!")
+                                            # TODO add time stamp instaed of line
+                                            shard.backup_events.append([line_number,timestamp_value,pattern[1]])
+                                
+                            #we have found the backup candidate.Exit from the loop
+                            break
+
+            # TODO refactor extract
+            ## Add error info
+            for error in errors:  
+                if error in line:
+                    match = re.search(error_backup_jobd, line)
+                    if match:
+                        # Get Project ID
+                        # TODO refactor extract the function of parsing
+                        gid_values = match.group("gid")
+                        rs_id = match.group("replica")
+                        timestamp_str = match.group("timestamp")
+                        timestamp_value = datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S.%f%z')
+
+                    for backup in reversed(backupsInfo):
+                        if backup.group_id == gid_values and backup.timestamp < timestamp_value:
+                            for shard in backup.shards:
+                                # TODo it is not shard id it is cluster id
+                                if shard.rs_id == rs_id:
+                                    # TODO add time stamp instaed of line
+                                    #print(line_number,timestamp_value)
+                                    shard.detected_errors.append([line_number, timestamp_value])
+                            #Exit from the loop
+                            break
+    return backupsInfo
+
+
+
+
+
+
+def check_stop(patterns ,stop_backup_errors):
+    # Find the start pattern
+    first_key = next(iter(patterns))
+    patterns_counters_first = patterns[first_key]
+    patterns_counters_lines  = [item[0] for item in patterns_counters_first[1]]
+
+    #Find the Finich pattren
+    stop_backup_errors_lines = [num for sublist in stop_backup_errors.values() for num in sublist]
+    stop_backup_errors_lines_sorted = sorted(stop_backup_errors_lines)
+
+    for i in range(len(patterns_counters_lines) - 1):
+        for error in stop_backup_errors_lines_sorted:
+            if patterns_counters_lines[i] < error < patterns_counters_lines[i + 1]:
+                print(f"Start[{patterns_counters_lines[i]}] => STOP EVENT[{error}]" )
+                break
+    print(f"Start[{patterns_counters_lines[-1]}] - No errors found")
+
+def main():
+    global start_end_map_events
+    global patterns
+    #replace  if we run over all events  or just over start-end events
+    #patterns_counters, stop_backup_errors = scan_all_events(patterns)
+    #patterns_counters ,stop_backup_errors = scan_all_events(start_end_map_events) GV
+
+
+
+    #lala = scan_all_events_new(start_end_map_events)
+    lala = scan_all_events_new(patterns)
+    print_backup_report(lala)
+
+    #pprint (lala)
+    #check_stop(patterns_counters,stop_backup_errors) GV
+    #pprint (patterns_counters,sort_dicts=False)
+    # print("STOP EVENTS")
+    #pprint (stop_backup_errors)
+#    print (stop_backup_errors)
 
 if __name__ == "__main__":
     main()
+
+
+#/Users/gregory.vinopal/tmp/code/backup_grep/.venv/bin/python /Users/gregory.vinopal/tmp/code/backup_grep/log_map/backup_log_map.py ./logs/mms0.log
