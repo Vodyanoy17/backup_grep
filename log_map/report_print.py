@@ -56,6 +56,21 @@ ClusterInfo(
     ]
   ),
 '''
+from datetime import datetime
+
+def print_date(dt):
+    # Your time string
+    #time_str = "2023-11-03 12:32:40.443000+00:00"
+
+    # Parse the string to a datetime object
+    #dt = datetime.fromisoformat(time_str)
+
+    # Format the datetime object to a string up to seconds
+    formatted_time = dt.strftime("%Y-%m-%d %H:%M:%S")
+
+    return(formatted_time)  # This will print "2023-11-03 12:32:40"
+
+
 # Define a function to print the report for each cluster
 def print_cluster_report(cluster):
 
@@ -65,21 +80,27 @@ def print_cluster_report(cluster):
 
     print("\n\tBackup global events:")
     for event in cluster.backup_global_events:
-        print(f"\t\t Line: {event[0]} , Time {event[1]}, Event {event[2]}")
+        print(f"\t\t Line: {event[0]} , Time: {print_date(event[1])}, Event: {event[2]}")
 
     print("\n\tBackup shards:")
+    there_is_error = False
     for shard in cluster.shards:
-        print("\n\t\t",colored(f"Shard Name:{shard.shard_name}",'white','on_green'))
-        print(colored(f"\t\tShard Id:{shard.rs_id}",'white','on_green'))
+        print("\t\tShard Name:",colored(f"{shard.shard_name}",'white','on_green'))
+        print("\t\tShard Id:",colored(f"{shard.shard_id}",'white','on_green'))
 
         print(colored ("\t\t\tBackup  events:",'white', 'on_magenta'))
         for event in shard.backup_events:
-            print(f"\t\t\t\t Line: {event[0]} , Time {event[1]}, Event {event[2]}")
+            print(f"\t\t\t\t Line: {event[0]} , Time: {print_date(event[1])}, Event: {event[2]}")
 
-        print(colored("\t\t\tDetected Errors:",'green', 'on_red'))
+        if len(shard.detected_errors) > 0:
+            print(colored("\t\t\tDetected Errors:",'green', 'on_red'))
         for error in shard.detected_errors:
-            print(f"\t\t\t\t Line: {error[0]}, Time {error[1]}")
-
+            print(f"\t\t\t\t Line: {error[0]}, Time: {print_date(error[1])}")
+            there_is_error = True
+    if not(there_is_error):
+        print(colored("\t\t\t*** FINISH ***", "green", attrs=["reverse", "blink"]))
+    else:
+        print(colored("\t\t\t*** FAILED ***", "red", attrs=["reverse", "blink"]))
 def print_backup_report(clusters):
  # Print the report for each cluster
  for cluster in clusters:
