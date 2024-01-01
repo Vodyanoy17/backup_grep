@@ -1,9 +1,13 @@
 import os
 import re
 import csv
+import numpy as np
 import argparse
+import threading
+import matplotlib
 from collections import defaultdict
 from datetime import datetime, date
+import matplotlib.pyplot as plt, io, base64
 
 def read_errors(file_name):
     """
@@ -95,16 +99,58 @@ def log_parser(
     # Example of the search link
     # https://search.corp.mongodb.com/#q=%22MULTIPLE_CONCURRENT_SNAPSHOTS%22&sort=date%20descending&f:facet-product=[Ops%20Manager]
   
-    html_log = ""
-    for error, count in found_errors.items():
-        search_link = f"""https://search.corp.mongodb.com/#q=%22{error}%22&sort=date%20descending&f:facet-product=[Ops%20Manager]"""
-        emeded_link = f"""<a href="{search_link}" target="_blank">{error}</a>"""
-        #html_log += f"""<p>Error Message <strong>[{error}]</strong>    Number of its occurrences <strong>{count}</strong><br>"""
-        html_log += f"""<p>Error Message <strong>[{emeded_link}]</strong>    Number of its occurrences <strong>{count}</strong><br>"""
-        html_log += f"""Sample line:<span style="color:green;">{error_lines[error]}</span></p>"""
+    html_log = get_html(found_errors, error_lines)
 
     return html_log
 
+lock = threading.Lock()
+def get_html(found_errors, error_lines):
+    html_log = ""
+    plot_url=""
+
+    with lock:
+        plot_url = add_plot(found_errors)
+    #html_log = f"""<img src="data:image/png;base64,{plot_url}"  style="height:50%; width:auto;>"""
+
+    html_log = f"""<p><img src="data:image/png;base64,{plot_url}"></p>"""
+
+    for error, count in found_errors.items():
+        search_link = f"""https://search.corp.mongodb.com/#q=%22{error}%22&sort=date%20descending&f:facet-product=[Ops%20Manager]"""
+        embeded_link = f"""<a href="{search_link}" target="_blank">{error}</a>"""
+
+        #html_log += f"""<p>Error Message <strong>[{error}]</strong>    Number of its occurrences <strong>{count}</strong><br>"""
+        html_log += f"""<p>Error Message <strong>[{embeded_link}]</strong>    Number of its occurrences <strong>{count}</strong><br>"""
+        html_log += f"""Sample line:<span style="color:green;">{error_lines[error]}</span></p>"""
+    
+    return html_log
+
+def add_plot(found_errors):
+   
+    matplotlib.use('Agg')
+    
+    # Calculate bar positions
+    bar_height = 0.35
+    index = np.arange(len(found_errors))
+
+    # Create a bar chart for the first series
+    plt.barh(index, found_errors.values(), bar_height)
+
+    plt.ylabel('Error')
+    plt.xlabel('Count')
+    plt.title('Error Count Bar Chart')
+    plt.yticks(index+bar_height/2, found_errors.keys())  # center the y-axis labels
+    #plt.legend()
+
+    # Convert plot to PNG image
+    img = io.BytesIO()
+    plt.savefig(img, format='png')
+    img.seek(0)
+    print(img)
+    plot_url = base64.b64encode(img.getvalue()).decode()
+
+    plt.clf()  # Clear the current figure
+    plt.close()  # Close the figure window    
+    return plot_url
 
 def main():
     parser = argparse.ArgumentParser(description="Find errors in log file.")
