@@ -271,6 +271,7 @@ def process_logs_multithreaded(log_files_list, start, end):
 
     return html_text
 
+
 def ok_action():
     """
     Validates user input, parses log file, and updates the HTML label.
@@ -291,12 +292,16 @@ def ok_action():
     if logs_dir == "" or not os.path.isdir(logs_dir):
         messagebox.showinfo("Info", "Please select a new directory with mms log files")
     else:
+        root.config(cursor="wait")
+        root.update()  # Ensure the cursor change is visible
         start = start_date_entry.get() + " " + start_time_entry.get()
         end = end_date_entry.get() + " " + end_time_entry.get()
         html_text = ""
         html_text = process_logs_multithreaded(log_files_list, start, end)
         open_web(html_text)
         delete_temporary_files(log_files_list)
+        root.config(cursor="")
+        root.update()  # Ensure the cursor reset is visible
 
 
 def open_web(html_content):
