@@ -29,7 +29,8 @@ we are looking for the most popular backup errors in MMS0.log file
    
 6. Example of execution
    ```
-    <venv_name>/bin/python /backup_grep/grep/bckgrepgui.py
+    <venv_name>/bin/python bckgrepgui.py
+    <venv_name>/bin/python backup_log_map.py [mms0 log file]
    ```
 
 
