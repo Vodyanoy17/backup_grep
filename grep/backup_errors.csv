@@ -44,3 +44,5 @@ handleError
 jetty.io.EofException
 mongod binary version from primary mongod is empty
 Unable to find a primary for target replica set from monitoring data
+High rate of garbage collector activity
+Error running alert

@@ -114,7 +114,9 @@ def get_html(found_errors, error_lines):
 
     html_log = f"""<p><img src="data:image/png;base64,{plot_url}"></p>"""
 
-    for error, count in found_errors.items():
+    sorted_errors = {k: v for k, v in sorted(found_errors.items(), key=lambda item: item[1],reverse=True)}
+
+    for error, count in sorted_errors.items():
         search_link = f"""https://search.corp.mongodb.com/#q=%22{error}%22&sort=date%20descending&f:facet-product=[Ops%20Manager]"""
         embeded_link = f"""<a href="{search_link}" target="_blank">{error}</a>"""
 
@@ -145,7 +147,7 @@ def add_plot(found_errors):
     img = io.BytesIO()
     plt.savefig(img, format='png')
     img.seek(0)
-    print(img)
+    
     plot_url = base64.b64encode(img.getvalue()).decode()
 
     plt.clf()  # Clear the current figure
