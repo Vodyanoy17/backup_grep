@@ -1,4 +1,4 @@
-# backup_grep
+# backup_grep/backup_log_map
 
 we are looking for the most popular backup errors in MMS0.log file 
 
