@@ -27,12 +27,17 @@ we are looking for the most popular backup errors in MMS0.log file
    $ brew install python-tk
    ````
    
-6. Example of execution
+6. Example of execution grep ustility
    ```
     <venv_name>/bin/python bckgrepgui.py
+   ```
+<img width="705" alt="image" src="https://github.com/Vodyanoy17/backup_grep/assets/35487262/7868e60d-1295-4dcb-8bd1-fc656529a074">
+
+7. Example of execution grep backup_log_map 
+ ```
     <venv_name>/bin/python backup_log_map.py [mms0 log file]
    ```
-
+<img width="775" alt="image" src="https://github.com/Vodyanoy17/backup_grep/assets/35487262/7d52a1d0-be6c-481f-afe5-32756c55fb1c">
 
 
 
