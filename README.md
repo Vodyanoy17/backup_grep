@@ -1,37 +1,63 @@
 # backup_grep/backup_log_map
 
-we are looking for the most popular backup errors in MMS0.log file 
+## we are looking for the most popular  errors in MMS0.log file based on list of the errors
+
+### Tested on `MAC M1` and `Windows10 64 x86`
 
 **Installation:**
 
 1. To install python on macOS
    ```
-   brew install python3
+   $brew install python3
    ```
 2. Clone the repository:
    ```
-   gh repo clone Vodyanoy17/backup_grep
+   MAC:
+   $gh repo clone Vodyanoy17/backup_grep
    ```
-
+   ```
+   WINDOWS:
+   >git clone https://github.com/Vodyanoy17/backup_grep.git .
+   ```
 3. create a virtual environment
    ```
-   python3 -m venv venv1
-   source venv1/bin/activate
+   MAC:
+   $ python3 -m venv venv1
+   $ source venv1/bin/activate
+   ```
+   ```
+   WINDOWS:
+   > python -m venv venv1
+   > venv1\Scripts\activate.bat
    ```
 4. install the packages according to the configuration file
    ```
+   MAC:
    $ python3 -m pip install --upgrade pip
    $ pip install -r backup_grep/requirements.txt
+   ```
+   ```
+   WINDOWS:
+   > python.exe -m pip install --upgrade pip
+   > pip install -r requirements.txt
    ```
    Solution for Linux, Windows (WSL/Ubuntu) and MacOS: Please install `python-tk` manually from Homebrew
    ```
    $ brew install python-tk
-   ````
+   ```
    
 6. Example of execution grep ustility
    ```
+   MAC:
     venv1/bin/python backup_grep/grep/bckgrepgui.py
    ```
+   ```
+   WINDOWS
+   >python grep\bckgrepgui.py
+   ```
+![image](https://github.com/Vodyanoy17/backup_grep/assets/35487262/46ab2c96-1a59-4aa9-8490-4e1c7d09a87a)
+
+   
 <img width="705" alt="image" src="https://github.com/Vodyanoy17/backup_grep/assets/35487262/7868e60d-1295-4dcb-8bd1-fc656529a074">
 
 7. Example of execution grep backup_log_map 
