@@ -68,11 +68,21 @@ def find_errors(log_file, errors, beginning_timestamp, end_timestamp):
                             error_lines[error] = line.strip()
     return error_counts, error_lines
 
+def get_errors_file_path(errors_list_file):
+    script_directory = os.path.dirname(__file__)
+    #print(script_directory)
+    if errors_list_file == "":
+        file_path = os.path.join(script_directory, "bckgrep_backup_errors_6.csv")
+    else:
+        file_path = os.path.join(script_directory, errors_list_file)
+    return file_path
+
 
 def log_parser(
     log_file,
     beginning_timestamp="1970-01-01T00:00:00",
     end_timestamp="2190-01-01T23:59:59",
+    errors_list_file =""
 ):
     """
     Parses a log file, searches for errors, and generates an HTML log summary.
@@ -85,10 +95,8 @@ def log_parser(
     Returns:
         str: An HTML-formatted log summary containing error information.
     """
-
-    script_directory = os.path.dirname(__file__)
-    #print(script_directory)
-    file_path = os.path.join(script_directory, "backup_errors.csv")
+    print(errors_list_file)
+    file_path = get_errors_file_path(errors_list_file)
     errors = read_errors(file_path)
     found_errors, error_lines = find_errors(
         log_file,
