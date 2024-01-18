@@ -229,7 +229,7 @@ def on_start_combobox_click(event):
 
 
 
-def process_log(log_file, start, end):
+def process_log(log_file, start, end,errorslist_file):
     """
     Process a single log file and return the HTML representation.
 
@@ -241,11 +241,11 @@ def process_log(log_file, start, end):
     Returns:
         str: HTML representation of the log file.
     """
-    html_log = log_parser(log_file[1], beginning_timestamp=start, end_timestamp=end)
+    html_log = log_parser(log_file[1], beginning_timestamp=start, end_timestamp=end,errors_list_file=errorslist_file )
     filename = os.path.basename(log_file[0])
     return f"<h3>{filename}</h3>" + html_log
 
-def process_logs_multithreaded(log_files_list, start, end):
+def process_logs_multithreaded(log_files_list, start, end,errors_list_file):
     """
     Process multiple log files in parallel using multithreading.
 
@@ -262,7 +262,7 @@ def process_logs_multithreaded(log_files_list, start, end):
     # Using ThreadPoolExecutor for multithreading
     with concurrent.futures.ThreadPoolExecutor() as executor:
         # Process each log file concurrently
-        futures = [executor.submit(process_log, log_file_pair, start, end) for log_file_pair in log_files_list]
+        futures = [executor.submit(process_log, log_file_pair, start, end,errors_list_file) for log_file_pair in log_files_list]
 
         # Collect the results as they become available
         for future in concurrent.futures.as_completed(futures):
@@ -296,8 +296,9 @@ def ok_action():
         root.update()  # Ensure the cursor change is visible
         start = start_date_entry.get() + " " + start_time_entry.get()
         end = end_date_entry.get() + " " + end_time_entry.get()
+        errors_list_file = csv_combobox.get()
         html_text = ""
-        html_text = process_logs_multithreaded(log_files_list, start, end)
+        html_text = process_logs_multithreaded(log_files_list, start, end,errors_list_file)
         open_web(html_text)
         delete_temporary_files(log_files_list)
         root.config(cursor="")
@@ -335,7 +336,7 @@ def enable_time_widgets(start_date_entry, start_time_entry, end_date_entry, end_
 
 log_files_list = []
 root = tk.Tk()
-
+line = 0
 default_directory = os.getcwd()  # Get the current working directory
 
 tk.Label(root, text="Log files (mms0*.log|gz) location: ").grid(row=0)
@@ -344,34 +345,51 @@ file_entry.insert(0, default_directory)  # Set the default directory
 
 # Make the file_entry field read-only
 file_entry.config(state="readonly")
-file_entry.grid(row=0, column=1)
+file_entry.grid(row=line, column=1)
 tk.Button(root, text="Browse", command=select_directory).grid(row=0, column=2)
+line += 1
 
-tk.Label(root, text="Start Time frame:").grid(row=1)
+script_directory = os.path.dirname(__file__)
+# Get the list of CSV files starting with "bckgrep_" in the script directory
+csv_files = [f for f in os.listdir(script_directory) if f.startswith("bckgrep_") and f.endswith(".csv")]
+
+tk.Label(root, text="List of Errros: ").grid(row=line)
+
+# Create a combobox with the CSV file names
+csv_combobox = ttk.Combobox(root, values=csv_files)
+csv_combobox.grid(row=line, column=1)
+line += 1
+
+# Add a horizontal line after the combobox
+# canvas = tk.Canvas(root, width=300, height=10)
+# canvas.create_line(10, 5, 290, 5)
+# canvas.grid(row=line, column=0)
+# line += 1
+
+tk.Label(root, text="Start Time frame:").grid(row=line)
 start_date_entry = DateEntry(root)
-start_date_entry.grid(row=1, column=1)
+start_date_entry.grid(row=line, column=1)
 start_time_entry = ttk.Combobox(
     root, values=[f"{i:02d}:{j:02d}" for i in range(24) for j in range(0, 60, 15)]
 )
-start_time_entry.grid(row=1, column=2)
-
-# Bind the click event to the §§
+start_time_entry.grid(row=line, column=2)
+# Bind the click event to the 
 start_time_entry.bind("<Button-1>", on_start_combobox_click)
+line += 1
 
-
-tk.Label(root, text="End Time frame:").grid(row=2)
+tk.Label(root, text="End Time frame:").grid(row=line)
 end_date_entry = DateEntry(root)
-end_date_entry.grid(row=2, column=1)
+end_date_entry.grid(row=line, column=1)
 end_time_entry = ttk.Combobox(
     root, values=[f"{i:02d}:{j:02d}" for i in range(24) for j in range(0, 60, 15)]
 )
-end_time_entry.grid(row=2, column=2)
+end_time_entry.grid(row=line, column=2)
 end_time_entry.bind("<Button-1>", on_end_combobox_click)
-
+line += 1
 # Disable the widgets
 disable_time_widgets(start_date_entry, start_time_entry, end_date_entry, end_time_entry)
 
-tk.Button(root, text="OK", command=ok_action).grid(row=3, column=0)
-tk.Button(root, text="Cancel", command=cancel_action).grid(row=3, column=1)
-
+tk.Button(root, text="OK", command=ok_action).grid(row=line, column=0)
+tk.Button(root, text="Cancel", command=cancel_action).grid(row=line, column=1)
+line += 1
 root.mainloop()

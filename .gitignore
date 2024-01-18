@@ -165,3 +165,4 @@ grep/favicon.ico
 logs
 log_gz_small
 logs_gz_big
+venv1/
