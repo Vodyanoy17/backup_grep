@@ -1,10 +1,12 @@
 import os
 import re
 import csv
+import mmap
 import numpy as np
 import argparse
 import threading
 import matplotlib
+from tqdm import tqdm
 from collections import defaultdict
 from datetime import datetime, date
 import matplotlib.pyplot as plt, io, base64
@@ -28,6 +30,21 @@ def read_errors(file_name):
             for item in sublist
         ]
 
+def get_num_lines(file_path):
+    """_summary_
+
+    Args:
+        file_path (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    fp = open(file_path, "r+")
+    buf = mmap.mmap(fp.fileno(), 0)
+    lines = 0
+    while buf.readline():
+        lines += 1
+    return lines
 
 def find_errors(log_file, errors, beginning_timestamp, end_timestamp):
     """
@@ -51,8 +68,9 @@ def find_errors(log_file, errors, beginning_timestamp, end_timestamp):
     begin_datetime = datetime.strptime(beginning_timestamp, "%m/%d/%y %H:%M")
     end_datetime = datetime.strptime(end_timestamp, "%m/%d/%y %H:%M")
 
+ 
     with open(log_file, "r") as file:
-        for line in file:
+        for _,line in enumerate(tqdm(file,total= get_num_lines(log_file))):
             # fint the timestaml in the line
             match_time = re.search(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", line)
             if match_time:
@@ -95,7 +113,7 @@ def log_parser(
     Returns:
         str: An HTML-formatted log summary containing error information.
     """
-    print(errors_list_file)
+    #print(errors_list_file)
     file_path = get_errors_file_path(errors_list_file)
     errors = read_errors(file_path)
     found_errors, error_lines = find_errors(
