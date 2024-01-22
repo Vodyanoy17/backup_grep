@@ -44,7 +44,7 @@ def delete_temporary_files(log_files_list):
         if original_name.endswith('.gz'):
             try:
                 os.remove(log_file)
-                print(f"{log_file} has been deleted successfully.")
+                #print(f"{log_file} has been deleted successfully.")
             except OSError as e:
                 print(f"Error: {log_file} - {e}")
 
@@ -241,6 +241,7 @@ def process_log(log_file, start, end,errorslist_file):
     Returns:
         str: HTML representation of the log file.
     """
+    
     html_log = log_parser(log_file[1], beginning_timestamp=start, end_timestamp=end,errors_list_file=errorslist_file )
     filename = os.path.basename(log_file[0])
     return f"<h3>{filename}</h3>" + html_log
@@ -297,7 +298,9 @@ def ok_action():
         start = start_date_entry.get() + " " + start_time_entry.get()
         end = end_date_entry.get() + " " + end_time_entry.get()
         errors_list_file = csv_combobox.get()
+
         html_text = ""
+        print("**Scanning**")
         html_text = process_logs_multithreaded(log_files_list, start, end,errors_list_file)
         open_web(html_text)
         delete_temporary_files(log_files_list)
