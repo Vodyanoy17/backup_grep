@@ -166,3 +166,8 @@ logs
 log_gz_small
 logs_gz_big
 venv1/
+.DS_Store
+grep/test2.py
+grep/tmp_filter.py
+grep/tmp_filter.py
+grep/tmp_filter.py

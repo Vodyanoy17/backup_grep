@@ -25,4 +25,5 @@ tk==0.1.0
 tkcalendar==1.6.1
 tkhtmlview==0.2.0
 tkinterhtml==0.7
+tqdm==4.66.1
 urllib3==2.0.7
