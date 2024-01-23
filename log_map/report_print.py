@@ -1,4 +1,4 @@
-#from collections import namedtuple
+#from collections import namedtuple 
 from termcolor import colored
 
 # Define a namedtuple to hold information about each cluster
