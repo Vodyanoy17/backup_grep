@@ -259,6 +259,7 @@ def process_logs_multithreaded(log_files_list, start, end,errors_list_file):
         str: Combined HTML representation of all log files.
     """
     html_text = ""
+    html_text += "<h3>Time Frame " + start + " - " + end + "</h3>"
 
     # Using ThreadPoolExecutor for multithreading
     with concurrent.futures.ThreadPoolExecutor() as executor:
