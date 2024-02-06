@@ -1,0 +1,11 @@
+ERROR
+Resetting exceedingly large pooled buffer from 
+High rate of garbage collector activity
+Failed to offer IngestionPingMsgProcessor within
+Received 1 duplicate key errors out of 100 on bulk metric insert
+CronJob: dbRollupScheduler fire time is lagging
+java.lang.OutOfMemoryError
+No AlertCheck registered: eventType=USERS_AWAITING_APPROVAL
+java.lang.OutOfMemoryError
+java.lang.StackOverflowError
+#END#

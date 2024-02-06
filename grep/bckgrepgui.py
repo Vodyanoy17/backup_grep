@@ -8,7 +8,7 @@ import webbrowser
 import tkinter as tk
 import concurrent.futures
 from datetime import datetime
-from grep_bck import log_parser
+from grep_bck import log_parser,get_last_timestamp,get_first_timestamp
 from tkhtmlview import HTMLLabel
 from tkinter import ttk #, scrolledtext
 from tkcalendar import DateEntry #, Calendar, 
@@ -71,10 +71,6 @@ def fill_fields_with_default(log_files_dir):
             file_data_extract(log_file)
 
 
-# Define a function to find the timestamp using regular expression
-def find_timestamp(line):
-    return re.search(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", line)
-
 def file_data_extract(log_file):
     with open(log_file,'rb') as file:
         """
@@ -82,23 +78,10 @@ def file_data_extract(log_file):
         from the second and last lines, and populates the relevant fields with these timestamps.
         """
         # skip the first line with the header
-        _ = file.readline()
+        match_start = get_first_timestamp(file)
 
-        # Read the second line again to get the actual second line
-        second_line = file.readline().decode("utf-8")
         # Seek to the end of the file
-        file.seek(-2, 2)
-
-        # Move the cursor to the beginning of the last line
-        while file.read(1) != b'\n':
-            file.seek(-2, 1)
-
-        # Read the last line
-        last_line = file.readline().decode('utf-8')
-
-        # Use regular expression to find the timestamp
-        match_start = find_timestamp(second_line)
-        match_end = find_timestamp(last_line)
+        match_end = get_last_timestamp(file)
     
         current_date = start_date_entry.get_date()
         current_time = start_time_entry.get()
@@ -148,6 +131,10 @@ def file_data_extract(log_file):
             else:
                 end_date_entry.set_date(timestamp_2.date())
                 end_time_entry.set(timestamp_2.strftime("%H:%M"))
+
+
+
+
 
 
 def select_directory():
