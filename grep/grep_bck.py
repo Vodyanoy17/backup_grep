@@ -69,21 +69,40 @@ def find_errors(log_file, errors, beginning_timestamp, end_timestamp):
     end_datetime = datetime.strptime(end_timestamp, "%m/%d/%y %H:%M")
 
  
-    with open(log_file, "r") as file:
-        for _,line in enumerate(tqdm(file,total= get_num_lines(log_file))):
-            # fint the timestaml in the line
-            match_time = re.search(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", line)
-            if match_time:
-                timestamp_str = match_time.group(0)
-                log_datetime = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S")
+    with open(log_file, "rb") as file:
+        match_first = get_first_timestamp(file)
+        if match_first:
+            timestamp_first_line_str  = match_first.group(0)
+            timestamp_first_line = datetime.strptime(timestamp_first_line_str, "%Y-%m-%dT%H:%M:%S")
 
-            # Check if the error occurred within the timeframe or if the timestamp in the line is invalid.
-            if (match_time and (begin_datetime <= log_datetime <= end_datetime))  or not match_time:
-                for error in errors:
-                    if error in line:
-                        error_counts[error] += 1
-                        if error not in error_lines:
-                            error_lines[error] = line.strip()
+        match_last = get_last_timestamp(file)
+        if match_last:
+            timestamp_last_line_str  = match_last.group(0)
+            timestamp_last_line = datetime.strptime(timestamp_last_line_str, "%Y-%m-%dT%H:%M:%S")
+
+    with open(log_file, "r") as file:
+        # check if two time intervals intersect 
+        # timestamp_first_line, timestamp_last_line,  and begin_datetime, end_datetime 
+        # (start1 <= end2 and end1 >= start2)
+        if (match_last and match_first and (timestamp_first_line <= end_datetime and timestamp_last_line >= begin_datetime))\
+            or not match_first or not match_last:
+            for _,line in enumerate(tqdm(file,total= get_num_lines(log_file))):
+                # fint the timestaml in the line
+                match_time = re.search(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", line)
+                if match_time:
+                    timestamp_str = match_time.group(0)
+                    log_datetime = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S")
+
+                # # fast exit option
+                # if (match_time and (log_datetime > end_datetime)):
+                #     break
+                # Check if the error occurred within the timeframe or if the timestamp in the line is invalid.
+                if (match_time and (begin_datetime <= log_datetime <= end_datetime))  or not match_time:
+                    for error in errors:
+                        if error in line:
+                            error_counts[error] += 1
+                            if error not in error_lines:
+                                error_lines[error] = line.strip()
     return error_counts, error_lines
 
 def get_errors_file_path(errors_list_file):
@@ -95,6 +114,31 @@ def get_errors_file_path(errors_list_file):
         file_path = os.path.join(script_directory, errors_list_file)
     return file_path
 
+# Define a function to find the timestamp using regular expression
+def find_timestamp(line):
+    return re.search(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", line)
+
+def get_first_timestamp(file):
+    _ = file.readline()
+
+        # Read the second line again to get the actual second line
+    second_line = file.readline().decode("utf-8")
+        # Use regular expression to find the timestamp
+    match_start = find_timestamp(second_line)
+    return match_start
+
+def get_last_timestamp(file):
+    file.seek(-2, 2)
+
+        # Move the cursor to the beginning of the last line
+    while file.read(1) != b'\n':
+        file.seek(-2, 1)
+
+        # Read the last line
+    last_line = file.readline().decode('utf-8')   
+    match_end = find_timestamp(last_line)
+    # file.seek(0)  # Move back to the beginning of the file
+    return match_end
 
 def log_parser(
     log_file,
