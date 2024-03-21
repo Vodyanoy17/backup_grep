@@ -15,6 +15,9 @@
 # 2021-06-15T07:41:27.965+0000 [JettyHttpPool-205] gid:60c7658302534d25555243c6 INFO  backup.jobs.60c7658302534d25555243c6.rs [WTCheckpointBackupSvc.java.saveBlockFilesForAllFileLists:1233] - Finished analyzing files. Snapshot: Snapshot: 60c7658302534d25555243c6/rs @ 1623742793000, Regular Files Left: 35, Files to Archive Left: 0 , Archive Files Left: 0.
 # 2021-06-15T07:41:28.051+0000 [JettyHttpPool-205] gid:60c7658302534d25555243c6 INFO  backup.jobs.60c7658302534d25555243c6.rs [WTCheckpointBackupSvc.java.saveBlockFilesForAllFileLists:1297] - Saving block files complete for 35 files.
 
+
+#2023-11-03T07:53:29.546+0000 [JettyHttpPool-305] gid:65449b33a064331ae2689533 INFO  com.xgen.svc.brs.slurp.res.AgentLogResource [AgentLogResource.java:handleLog:87] - 4.2 Snapshot progress: agent.wtsnapshot.myShard_1.1698995718 Snapshot progress: read 167772160 bytes total. (Last: 87091.86 kB/s. Cumulative: 87091.86 kB/s.) Exiting. ip-172-31-36-151.eu-west-1.compute.internal
+
 import os
 import re
 import csv
@@ -50,6 +53,11 @@ snapshot_progress = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\
 loading_backupdeployment = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) DEBUG .+?Loading BackupDeployment$"
 ## STOP EVENTS PATTERNS
 error_backup_jobd = "^(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}).+ backup\.jobs\.(?P<gid>\w+)\.(?P<replica>\w+).+$"
+
+##BACKUP SPEAD PATTERN
+backup_params = "^(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}).+ .+\.(?P<gid>\w+)\.(?P<replica>\w+).+maxWorkers=(?P<maxWorkes>\w+) maxNumUnitOfWorkBlocks=(?P<maxNumUnitOfWorkBlocks>\w+).+bandwidth=(?P<bandwidth>\w+)"
+#TBD
+cumulative = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) INFO .+ Snapshot progress: agent.wtsnapshot\.(?P<replica>.+)\.(\d*) Snapshot progress: read.+Cumulative: ([\d|\.]+.+) kB\/s\.\)"
 
 patterns = [wtc_clustershot_started_shards,
             #building_status_map, #NO cluster_ID inside
@@ -200,18 +208,18 @@ def get_var_names(var_list):
 ClusterInfo = namedtuple("ClusterInfo", ["group_id", "cluster_id", "timestamp","backup_global_events","shards"])
 ShardInfo = namedtuple("ShardInfo", ["shard_id", "shard_name", "backup_events", "detected_errors"])
 
-def scan_all_events_new(patterns):
+def scan_all_events_new(patterns,output_file):
     backupsInfo = []
     patterns_names = get_var_names(patterns)
     big_patterns = list(zip(patterns, patterns_names))
 
-    parser = argparse.ArgumentParser(description="Parsing log -file")
-    parser.add_argument("file_name", help="the name of the log-file")
+    # parser = argparse.ArgumentParser(description="Parsing log -file")
+    # parser.add_argument("file_name", help="the name of the log-file")
 
-    args = parser.parse_args()
+    # args = parser.parse_args()
     line_number = 0
-
-    with open(args.file_name, 'r') as log_file:
+#   with open(args.file_name, 'r') as log_file:
+    with open(output_file, 'r') as log_file:
         # Read all available backup errors
         script_directory = os.path.dirname(__file__)
         file_path = os.path.join(script_directory, 'backup_errors.csv')
@@ -313,11 +321,86 @@ def scan_all_events_new(patterns):
 #                 break
 #     print(f"Start[{patterns_counters_lines[-1]}] - No errors found")
 
+import os
+import gzip
+from datetime import datetime
+
+def concatenate_logs(directory):
+  """
+  This function scans a directory for log files, sorts them by modification date in descending order,
+  unzips gzip compressed files, and concatenates their content into a single output file.
+
+  Args:
+      directory (str): Path to the directory containing log files.
+
+  Returns:
+      str: Path to the concatenated output file (mms0.log.concat), or None if no files found.
+  """
+
+  # Initialize empty list to store file paths
+  log_files = []
+
+  # Iterate through files in the directory
+  for filename in os.listdir(directory):
+    if filename.startswith("mms0") and (filename.endswith(".log") or filename.endswith(".log.gz")):
+      # Construct full file path
+      filepath = os.path.join(directory, filename)
+      # Get modification time
+      modification_time = os.path.getmtime(filepath)
+      log_files.append((filepath, modification_time))
+
+#   # Sort files by modification time in descending order
+#   log_files.sort(key=lambda x: x[1], reverse=True)
+
+  # Sort files by filename in ascending order
+  log_files.sort()
+#   for item in log_files:
+#     print(item)
+
+  # Check if any files were found
+  if not log_files:
+    print("No log files found in the directory.")
+    return None
+
+  # Open output file for writing in append mode
+  with open(os.path.join(directory, "mms0.log.concat"), "a") as outfile:
+    for filepath, _ in log_files:
+      # Handle uncompressed files
+      if filepath.endswith(".log"):
+        with open(filepath, "r") as infile:
+          outfile.write(infile.read())
+
+      # Handle gzipped files
+      elif filepath.endswith(".log.gz"):
+        with gzip.open(filepath, "rb") as infile:
+          outfile.write(infile.read().decode())  # Decode for text processing
+
+  # Return path to the concatenated file
+  return os.path.join(directory, "mms0.log.concat")
+
+# Example usage
+# directory = "/path/to/your/log/directory"
+# output_file = concatenate_logs(directory)
+# if output_file:
+#   print(f"Concatenated logs into: {output_file}")
+
+
+
 def main():
     global start_end_map_events
     global patterns
 
-    lala = scan_all_events_new(patterns)
+
+    parser = argparse.ArgumentParser(description="Parsing log -directory")
+    parser.add_argument("directory_name", help="the name of the log-file")
+
+    args = parser.parse_args()
+    #args.directory_name
+    # directory = "/Users/gregory.vinopal/Downloads/iapp6918.randolph.ms.com/5/"
+    output_file = concatenate_logs(args.directory_name)
+    if output_file:
+        print(f"Concatenated logs into: {output_file}")
+    lala = scan_all_events_new(patterns,output_file)
     print_backup_report(lala)
 
 if __name__ == "__main__":
