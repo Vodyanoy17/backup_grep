@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog
-from log_map.file_sort import concat_all_files
+from file_sort import concat_all_files
 import backup_log_map 
 
 file_array = []
