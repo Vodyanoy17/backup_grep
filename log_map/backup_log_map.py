@@ -384,7 +384,13 @@ def concatenate_logs(directory):
 # if output_file:
 #   print(f"Concatenated logs into: {output_file}")
 
+def log_scaner(output_file):
+    global start_end_map_events
+    global patterns
 
+    lala = scan_all_events_new(patterns,output_file)
+    print(lala)
+    print_backup_report(lala)
 
 def main():
     global start_end_map_events

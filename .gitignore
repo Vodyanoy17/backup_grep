@@ -119,6 +119,7 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
+
 # Environments
 .env
 .venv
@@ -171,3 +172,17 @@ grep/test2.py
 grep/tmp_filter.py
 grep/tmp_filter.py
 grep/tmp_filter.py
+grep/test_vector.py
+grep/test3.py
+grep/test_vector_index.mjs
+grep/test_vector.py
+grep/go.mod
+grep/go.sum
+grep/main
+grep/package-lock.json
+grep/package.json
+grep/test_vector.py
+grep/node_modules/.package-lock.json
+grep/test_vector.py
+grep/test_file_sort.py
+grep/test_vector.py
