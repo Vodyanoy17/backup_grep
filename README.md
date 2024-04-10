@@ -60,11 +60,15 @@
    
 <img width="705" alt="image" src="https://github.com/Vodyanoy17/backup_grep/assets/35487262/7868e60d-1295-4dcb-8bd1-fc656529a074">
 
-7. Example of execution grep backup_log_map 
+7. Example of execution grep backup_log_map from cli
+   if you want to run it over several OM's logs you need to manually combine all files by `cat file1 file2 | sort > sorted.log`
+   The GUI version with a more efficient method of sorting.
  ```
-    venv1/bin/python  backup_grep/log_map/backup_log_map.py [mms0 log file]
+    venv1/bin/python  backup_grep/log_map/backup_log_map.py [mms0 logs directory]
    ```
 <img width="775" alt="image" src="https://github.com/Vodyanoy17/backup_grep/assets/35487262/7d52a1d0-be6c-481f-afe5-32756c55fb1c">
 
-
+8. The is an option to run GUI and select different files from several OM instances.
+   ```/python /backup_grep/log_map/map_gui.py```
+   <img width="304" alt="image" src="https://github.com/Vodyanoy17/backup_grep/assets/35487262/e2eafbc7-61e5-482b-9718-772915590de4">
 
