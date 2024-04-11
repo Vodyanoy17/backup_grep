@@ -70,5 +70,6 @@
 
 8. The is an option to run GUI and select different files from several OM instances.
    ```/python /backup_grep/log_map/map_gui.py```
-   <img width="304" alt="image" src="https://github.com/Vodyanoy17/backup_grep/assets/35487262/e2eafbc7-61e5-482b-9718-772915590de4">
+   <img width="692" alt="image" src="https://github.com/Vodyanoy17/backup_grep/assets/35487262/5e603a43-d150-431a-aa00-8ca0d2fe527f">
+
 
