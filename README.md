@@ -1,6 +1,8 @@
 # backup_grep/backup_log_map
 
-## we are looking for the most popular  errors in MMS0.log file based on list of the errors
+### backup_grep: Identifying common errors in the MMS0.log file based on an error list.
+### backup_log_map: Creating a straightforward backup process flow, highlighting significant events and errors across all shard logs from OM servers.
+
 
 ### Tested on `MAC M1` and `Windows10 64 x86`
 
@@ -45,7 +47,7 @@
    ```
    $ brew install python-tk
    ```
-   
+## backup_grep
 6. Example of execution grep ustility
    ```
    MAC:
@@ -57,9 +59,7 @@
    ```
 ![image](https://github.com/Vodyanoy17/backup_grep/assets/35487262/46ab2c96-1a59-4aa9-8490-4e1c7d09a87a)
 
-   
-<img width="705" alt="image" src="https://github.com/Vodyanoy17/backup_grep/assets/35487262/7868e60d-1295-4dcb-8bd1-fc656529a074">
-
+## backup_log_map   
 7. Example of execution grep backup_log_map from cli
    if you want to run it over several OM's logs you need to manually combine all files by `cat file1 file2 | sort > sorted.log`
    The GUI version with a more efficient method of sorting.
