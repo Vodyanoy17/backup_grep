@@ -1,3 +1,4 @@
+import os
 import tkinter as tk
 from tkinter import filedialog
 from file_sort import concat_all_files
@@ -54,7 +55,11 @@ vscrollbar.config(command=listbox.yview)
 hscrollbar.config(command=listbox.xview)
 
 # Create a button that will call the select_files function when clicked
-select_button = tk.Button(root, text="Select Files", command=lambda: run_function(select_files()))
+select_button = tk.Button(root, text="Select Files", command=lambda: select_files())
+select_button.pack()
+
+# Create a button that will call the select_files function when clicked
+select_button = tk.Button(root, text="Run", command=lambda: run_function(file_array))
 select_button.pack()
 
 # Create a button that will exit the application when clicked
