@@ -21,11 +21,12 @@
 import os
 import re
 import csv
+import gzip
 import argparse
 from pprint import pprint
-from report_print import print_backup_report
 from datetime import datetime
 from collections import namedtuple
+from report_print import print_backup_report
 
 ## The header of the sharded backup
 wtc_clustershot_started_shards = "(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}) \[.+?\] gid:(?P<gid>.+?) INFO .+ Wtc clustershot started for groupId: (?P=gid), clusterId: (?P<clusterid>.+?), topology:"
@@ -149,61 +150,6 @@ def get_var_names(var_list):
 
     return var_names
 
-
-# def scan_all_events(patterns):
-#     patterns_names = get_var_names(patterns)
-#     big_patterns = list(zip(patterns, patterns_names))
-
-#     stop_backup_errors ={}
-#     # Create a dictionary where all values are zero
-#     patterns_counters = {key:[0,[]] for key in patterns_names} 
-
-#     parser = argparse.ArgumentParser(description="Parsing log -file")
-#     parser.add_argument("file_name", help="the name of the log-file")
-
-#     args = parser.parse_args()
-#     line_number = 0
-
-#     with open(args.file_name, 'r') as log_file:
-#         # Read all available backup errors
-#         script_directory = os.path.dirname(__file__)
-#         file_path = os.path.join(script_directory, 'backup_errors.csv')
-#         errors = read_errors(file_path)
-#         for line in log_file:
-#             line_number += 1 
-#             for pattern in big_patterns:
-#                 match = re.search(pattern[0], line)
-#                 if match:
-
-#                     patterns_counters[pattern[1]][0] += 1
-
-
-#                     try:
-#                         replica_value = match.group("replica")
-#                     except:
-#                         replica_value = ""
-#                          # TODO Not good need to change
-#                         if pattern[1] == "wtc_clustershot_started_shards":  
-#                             replica_value = shard_backup_header_parser(line)
-
-#                     # Get Project ID
-#                     gid_values = match.group("gid")
-
-#                     # Get RS ID
-#                     patterns_counters[pattern[1]][1].append([line_number,replica_value])
-
-#             for error in errors:
-#                 if error in line:
-#                     #print(error,line_number,line)
-#                     if error in stop_backup_errors:
-#                         stop_backup_errors[error].append(line_number)
-#                     else:
-#                         stop_backup_errors[error] = [line_number]
-#             # if line_number > 200000:
-#             #     break
-#     return patterns_counters ,stop_backup_errors
-
-
 # Define a namedtuple to hold information about each cluster
 ClusterInfo = namedtuple("ClusterInfo", ["group_id", "cluster_id", "timestamp","backup_global_events","shards"])
 ShardInfo = namedtuple("ShardInfo", ["shard_id", "shard_name", "backup_events", "detected_errors"])
@@ -304,26 +250,7 @@ def scan_all_events_new(patterns,output_file):
                             break
     return backupsInfo
 
-# def check_stop(patterns ,stop_backup_errors):
-#     # Find the start pattern
-#     first_key = next(iter(patterns))
-#     patterns_counters_first = patterns[first_key]
-#     patterns_counters_lines  = [item[0] for item in patterns_counters_first[1]]
 
-#     #Find the Finich pattren
-#     stop_backup_errors_lines = [num for sublist in stop_backup_errors.values() for num in sublist]
-#     stop_backup_errors_lines_sorted = sorted(stop_backup_errors_lines)
-
-#     for i in range(len(patterns_counters_lines) - 1):
-#         for error in stop_backup_errors_lines_sorted:
-#             if patterns_counters_lines[i] < error < patterns_counters_lines[i + 1]:
-#                 print(f"Start[{patterns_counters_lines[i]}] => STOP EVENT[{error}]" )
-#                 break
-#     print(f"Start[{patterns_counters_lines[-1]}] - No errors found")
-
-import os
-import gzip
-from datetime import datetime
 
 def concatenate_logs(directory):
   """
